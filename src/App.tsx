@@ -1,26 +1,86 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useReducer, useState } from "react";
+import "./App.css";
+import {
+  INSTRUMENT,
+  INSTRUMENT_CARD,
+  MISSED_INSTRUMENT_CARD,
+} from "./data/instruments/instrument";
+import { LEVEL } from "./data/instruments/level";
+import { PHASE } from "./data/phase";
+import SetupScreen from "./SetupScreen";
+import QuizScreen from "./QuizScreen";
+import { getCardsForQuiz } from "./data/instruments/cardAccessor";
+import ResultsScreen from "./ResultsScreen";
+import { useStopwatch } from "react-timer-hook";
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+  const [phase, setPhase] = useState<PHASE>(PHASE.SETUP);
+  const [instrument, setInstrument] = useState<INSTRUMENT | "">("");
+  const [level, setLevel] = useState<LEVEL | "">("");
+  const { pause, reset, minutes, seconds } = useStopwatch({
+    autoStart: false,
+  });
+  const [correctAnswers, addCorrectAnswer] = useReducer(
+    (state: INSTRUMENT_CARD[], newValue: INSTRUMENT_CARD | null) =>
+      newValue ? [...state, newValue] : [],
+    []
   );
+  const [missedAnswers, addMissedAnswer] = useReducer(
+    (
+      state: MISSED_INSTRUMENT_CARD[],
+      newValue: MISSED_INSTRUMENT_CARD | null
+    ) => (newValue ? [...state, newValue] : []),
+    []
+  );
+
+  let phaseComponent;
+
+  switch (phase) {
+    case PHASE.SETUP:
+      phaseComponent = (
+        <SetupScreen
+          setPhase={setPhase}
+          instrument={instrument}
+          setInstrument={setInstrument}
+          level={level}
+          setLevel={setLevel}
+        />
+      );
+      break;
+    case PHASE.QUIZZING:
+      phaseComponent = (
+        <QuizScreen
+          instrumentCards={Object.values(
+            getCardsForQuiz(instrument as INSTRUMENT, level as LEVEL) ?? {}
+          )}
+          setPhase={setPhase}
+          pauseTimer={pause}
+          resetTimer={reset}
+          minutes={minutes}
+          seconds={seconds}
+          correctAnswers={correctAnswers}
+          addCorrectAnswer={addCorrectAnswer}
+          addMissedAnswer={addMissedAnswer}
+        />
+      );
+      break;
+    case PHASE.RESULTS:
+      phaseComponent = (
+        <ResultsScreen
+          instrument={instrument as INSTRUMENT}
+          level={level as LEVEL}
+          seconds={seconds}
+          minutes={minutes}
+          correctAnswers={correctAnswers}
+          missedAnswers={missedAnswers}
+          setPhase={setPhase}
+        />
+      );
+      break;
+    default:
+  }
+
+  return <div className="App">{phaseComponent}</div>;
 }
 
 export default App;
