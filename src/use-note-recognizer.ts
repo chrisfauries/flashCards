@@ -211,9 +211,9 @@ export const useNoteRecognizer = (): RecognizerHook => {
 
     recognition.onend = function (e: any) {
       if (!stopClicked.current) {
-        setIsRunning(false);
-      } else {
         recognition.start();
+      } else {
+        setIsRunning(false);
       }
       startLock.current = false;
     };
@@ -251,8 +251,8 @@ export const useNoteRecognizer = (): RecognizerHook => {
     },
     stop: () => {
       if (startLock.current && !isRunning) return;
-      recognitionRef.current.stop();
       stopClicked.current = true;
+      recognitionRef.current.stop();
     },
   };
 };
