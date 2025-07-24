@@ -52,6 +52,7 @@ export const useNoteRecognizer = (): RecognizerHook => {
   const [isCatchPhaseSpoken, setIsCatchPhaseSpoken] = useState(false);
 
   const startLock = useRef(false);
+  const stopClicked = useRef(false);
   const processedFinalizedResults = useRef<Set<SpeechRecognitionResult>>(
     new Set()
   );
@@ -106,13 +107,13 @@ export const useNoteRecognizer = (): RecognizerHook => {
             versionedAnswers.push(noteNames);
           }
 
-        //   console.log("---Finalized Answers and parsings---");
-        //   console.log(
-        //     versionedString.reduce<any>((a, c, i) => {
-        //       a[c] = versionedAnswers[i];
-        //       return a;
-        //     }, {})
-        //   );
+          //   console.log("---Finalized Answers and parsings---");
+          //   console.log(
+          //     versionedString.reduce<any>((a, c, i) => {
+          //       a[c] = versionedAnswers[i];
+          //       return a;
+          //     }, {})
+          //   );
 
           processedFinalizedResults.current.add(result);
           finalRecognizedNotes.current = [
@@ -209,7 +210,11 @@ export const useNoteRecognizer = (): RecognizerHook => {
     };
 
     recognition.onend = function (e: any) {
-      setIsRunning(false);
+      if (!stopClicked.current) {
+        setIsRunning(false);
+      } else {
+        recognition.start();
+      }
       startLock.current = false;
     };
 
@@ -241,11 +246,13 @@ export const useNoteRecognizer = (): RecognizerHook => {
       if (!startLock.current) {
         startLock.current = true;
         recognitionRef.current.start();
+        stopClicked.current = false;
       }
     },
     stop: () => {
       if (startLock.current && !isRunning) return;
       recognitionRef.current.stop();
+      stopClicked.current = true;
     },
   };
 };
