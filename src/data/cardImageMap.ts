@@ -66,6 +66,7 @@ import BASS_A3 from "../static/bassClefNotes/A3.jpg";
 import BASS_A_FLAT1 from "../static/bassClefNotes/Ab1.jpg";
 import BASS_A_FLAT2 from "../static/bassClefNotes/Ab2.jpg";
 import BASS_A_FLAT3 from "../static/bassClefNotes/Ab3.jpg";
+import BASS_A_FLAT4 from "../static/bassClefNotes/Ab4.jpg";
 import BASS_A_SHARP1 from "../static/bassClefNotes/Asharp1.jpg";
 import BASS_A_SHARP2 from "../static/bassClefNotes/Asharp2.jpg";
 import BASS_A_SHARP3 from "../static/bassClefNotes/Asharp3.jpg";
@@ -115,6 +116,7 @@ import BASS_G_FLAT4 from "../static/bassClefNotes/Gb4.jpg";
 import BASS_G_SHARP1 from "../static/bassClefNotes/Gsharp1.jpg";
 import BASS_G_SHARP2 from "../static/bassClefNotes/Gsharp2.jpg";
 import BASS_G_SHARP3 from "../static/bassClefNotes/Gsharp3.jpg";
+import BASS_G_SHARP4 from "../static/bassClefNotes/Gsharp4.jpg";
 
 export const TREBLE_CLEF_IMAGES: {
   [key in PITCH]?: { [key in ACCIDENTAL]?: string };
@@ -207,4 +209,5 @@ export const BASS_CLEF_IMAGES: {
   [PITCH.G_SHARP_A_FLAT_1]: { [ACCIDENTAL.SHARP]: BASS_G_SHARP1, [ACCIDENTAL.FLAT]: BASS_A_FLAT1 },
   [PITCH.G_SHARP_A_FLAT_2]: { [ACCIDENTAL.SHARP]: BASS_G_SHARP2, [ACCIDENTAL.FLAT]: BASS_A_FLAT2 },
   [PITCH.G_SHARP_A_FLAT_3]: { [ACCIDENTAL.SHARP]: BASS_G_SHARP3, [ACCIDENTAL.FLAT]: BASS_A_FLAT3 },
+  [PITCH.G_SHARP_A_FLAT_4]: { [ACCIDENTAL.SHARP]: BASS_G_SHARP4, [ACCIDENTAL.FLAT]: BASS_A_FLAT4 },
 };

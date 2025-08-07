@@ -799,4 +799,16 @@ export const BASS_CARDS: { [key in PITCH]?: CARD_ACCIDENTAL_MAP } = {
       ACCIDENTAL.NATURAL
     ),
   },
+  [PITCH.G_SHARP_A_FLAT_4]: {
+    [ACCIDENTAL.SHARP]: getCard(
+      CLEF.BASS,
+      PITCH.G_SHARP_A_FLAT_4,
+      ACCIDENTAL.SHARP
+    ),
+    [ACCIDENTAL.FLAT]: getCard(
+      CLEF.BASS,
+      PITCH.G_SHARP_A_FLAT_4,
+      ACCIDENTAL.FLAT
+    ),
+  },
 };

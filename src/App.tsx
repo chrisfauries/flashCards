@@ -1,4 +1,4 @@
-import React, { useReducer, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import "./App.css";
 import {
   INSTRUMENT,
@@ -12,11 +12,43 @@ import QuizScreen from "./QuizScreen";
 import { getCardsForQuiz } from "./data/instruments/cardAccessor";
 import ResultsScreen from "./ResultsScreen";
 import { useStopwatch } from "react-timer-hook";
+import { useSearchParams } from "react-router-dom";
+
+const getInitInstrument = (instrument: string) => {
+  if (!instrument) return "";
+
+  for (const x of Object.values(INSTRUMENT)) {
+    if (x.toLowerCase() === instrument.toLowerCase()) return x;
+  }
+
+  return "";
+};
+const getInitLevel = (level: string) => {
+  if (!level) return "";
+
+  for (const x of Object.values(LEVEL)) {
+    if (x.toLowerCase() === level.toLowerCase()) return x;
+  }
+
+  return "";
+};
 
 function App() {
-  const [phase, setPhase] = useState<PHASE>(PHASE.SETUP);
-  const [instrument, setInstrument] = useState<INSTRUMENT | "">("");
-  const [level, setLevel] = useState<LEVEL | "">("");
+  const [queryParams, setQueryParams] = useSearchParams();
+  const queryParamValues = Object.fromEntries(
+    Array.from(queryParams.entries())
+  );
+
+  const [instrument, setInstrument] = useState<INSTRUMENT | "">(
+    getInitInstrument(queryParamValues.instrument ?? "")
+  );
+  const [level, setLevel] = useState<LEVEL | "">(
+    getInitLevel(queryParamValues.level ?? "")
+  );
+
+  const [phase, setPhase] = useState<PHASE>(
+    instrument && level && queryParamValues.autostart ? PHASE.QUIZZING : PHASE.SETUP
+  );
   const { pause, reset, minutes, seconds } = useStopwatch({
     autoStart: false,
   });
@@ -34,6 +66,13 @@ function App() {
   );
 
   let phaseComponent;
+
+  useEffect(() => {
+    setQueryParams({
+      instrument: instrument,
+      level: level,
+    });
+  }, [instrument, level])
 
   switch (phase) {
     case PHASE.SETUP:
