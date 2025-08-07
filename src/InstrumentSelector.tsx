@@ -15,7 +15,7 @@ interface Props {
 
 const InstrumentSelector: React.FC<Props> = ({ instrument, setInstrument }) => {
   return (
-    <Select onChange={(e) => setInstrument(e.target.value as INSTRUMENT)} className="w-[250px]">
+    <Select defaultValue={instrument} onChange={(e) => setInstrument(e.target.value as INSTRUMENT)} className="w-[250px]">
       {!instrument && <option value="">--- Select your instrument ---</option>}
       {options}
     </Select>

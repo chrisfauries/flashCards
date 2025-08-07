@@ -24,6 +24,7 @@ const LevelSelector: React.FC<Props> = ({
     ));
   return (
     <Select
+      defaultValue={level}
       onChange={(e) => setLevel(e.target.value as LEVEL)}
       className="w-[250px]"
       disabled={disabled}
