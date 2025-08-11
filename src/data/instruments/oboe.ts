@@ -13,7 +13,7 @@ import { getInstrumentCard } from "./utils";
 const getOboeCard = (
   cardMap: CARD_ACCIDENTAL_MAP | undefined,
   cardNumber: number
-) => getInstrumentCard(cardMap, INSTRUMENT.FLUTE, cardNumber);
+) => getInstrumentCard(cardMap, INSTRUMENT.OBOE, cardNumber);
 
 const OBOE_CARDS: INSTRUMENT_CARD_NUMBER_MAP = {
   1: getOboeCard(TREBLE_CARDS[PITCH.G_NATURAL_4], 1),

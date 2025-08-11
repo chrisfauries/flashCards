@@ -10,6 +10,7 @@ import { BASSOON_CARD_MAP } from "./bassoon";
 import { TROMBONE_CARD_MAP } from "./trombone";
 import { TRUMPET_CARD_MAP } from "./trumpet";
 import { TUBA_CARD_MAP } from "./tuba";
+import { PERCUSSION_CARD_MAP } from "./percussion"; 
 
 const getCardMap = (instrument: INSTRUMENT): INSTRUMENT_CARD_LEVEL_MAP => {
   switch (instrument) {
@@ -33,6 +34,8 @@ const getCardMap = (instrument: INSTRUMENT): INSTRUMENT_CARD_LEVEL_MAP => {
       return EUPHONIUM_CARD_MAP;
     case INSTRUMENT.TUBA:
       return TUBA_CARD_MAP;
+    case INSTRUMENT.PERCUSSION:
+      return PERCUSSION_CARD_MAP;
     default:
       return {}; // TODO: throw eventually
   }

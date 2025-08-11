@@ -13,6 +13,7 @@ import { getCardsForQuiz } from "./data/instruments/cardAccessor";
 import ResultsScreen from "./ResultsScreen";
 import { useStopwatch } from "react-timer-hook";
 import { useSearchParams } from "react-router-dom";
+import useIsMobile from "./use-is-mobile";
 
 const getInitInstrument = (instrument: string) => {
   if (!instrument) return "";
@@ -34,6 +35,7 @@ const getInitLevel = (level: string) => {
 };
 
 function App() {
+  const isMobile = useIsMobile();
   const [queryParams, setQueryParams] = useSearchParams();
   const queryParamValues = Object.fromEntries(
     Array.from(queryParams.entries())
@@ -47,7 +49,9 @@ function App() {
   );
 
   const [phase, setPhase] = useState<PHASE>(
-    instrument && level && queryParamValues.autostart ? PHASE.QUIZZING : PHASE.SETUP
+    instrument && level && queryParamValues.autostart
+      ? PHASE.QUIZZING
+      : PHASE.SETUP
   );
   const { pause, reset, minutes, seconds } = useStopwatch({
     autoStart: false,
@@ -72,7 +76,16 @@ function App() {
       instrument: instrument,
       level: level,
     });
-  }, [instrument, level])
+  }, [instrument, level]);
+
+  if (isMobile) {
+    return (
+      <div className="App">
+        This app is currently not supported on Mobile devices. Please use your
+        chromebook or another desktop/laptop device.
+      </div>
+    );
+  }
 
   switch (phase) {
     case PHASE.SETUP:
