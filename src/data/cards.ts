@@ -1,4 +1,3 @@
-import { BASS_CLEF_IMAGES, TREBLE_CLEF_IMAGES } from "./cardImageMap";
 import {
   ACCIDENTAL,
   CLEF,
@@ -13,7 +12,6 @@ export interface CARD {
   pitch: PITCH;
   accidental: ACCIDENTAL;
   octave: number;
-  img: string;
   noteName: NOTE_NAME;
 }
 
@@ -23,18 +21,14 @@ const throwMissing = (message: string) => {
   throw new Error(message);
 };
 
-// TODO: throw missing
 const getCard = (clef: CLEF, pitch: PITCH, accidental: ACCIDENTAL): CARD => ({
   clef,
   pitch,
   accidental,
   octave: PITCH_TO_OCTAVE_MAP[pitch],
-  img: (clef === CLEF.TREBLE
-    ? TREBLE_CLEF_IMAGES[pitch]?.[accidental]!!
-    : BASS_CLEF_IMAGES[pitch]?.[accidental])!!,
-  // ?? throwMissing("missing images for note card"),
-  noteName: PITCH_TO_NOTE_NAMES_MAP[pitch]?.[accidental]!!,
-  //??    throwMissing("missing note name for note card"),
+  noteName:
+    PITCH_TO_NOTE_NAMES_MAP[pitch]?.[accidental] ??
+    throwMissing("missing note name for note card"),
 });
 
 export const TREBLE_CARDS: { [key in PITCH]?: CARD_ACCIDENTAL_MAP } = {

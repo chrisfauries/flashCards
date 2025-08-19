@@ -1,6 +1,7 @@
 import React from "react";
 import { MISSED_INSTRUMENT_CARD } from "./data/instruments/instrument";
 import { NOTE_NAME_STRING_MAP } from "./data/pitch";
+import Note from "./Note";
 
 interface Props {
   missedCard: MISSED_INSTRUMENT_CARD;
@@ -17,14 +18,11 @@ const MissedCard: React.FC<Props> = ({ missedCard }) => {
 
   return (
     <div className="flex flex-col items-center justify-between bg-gray-900 text-white font-sans m-4 p-4">
-        <h5 className="text-2xl font-bold mb-2">{missedCard.instrument} #{missedCard.cardNumber}</h5>
+      <h5 className="text-2xl font-bold mb-2">
+        {missedCard.instrument} #{missedCard.cardNumber}
+      </h5>
       {missedCard.noteCards.map((noteCard) => (
-        <img
-          key={noteCard.noteName + noteCard.pitch * 100}
-          src={noteCard.img}
-          className="w-[275px] h-[125px]"
-          alt="missed card"
-        />
+        <Note key={noteCard.noteName + noteCard.pitch * 100} card={noteCard} />
       ))}
 
       <p className="text-sm mt-2">

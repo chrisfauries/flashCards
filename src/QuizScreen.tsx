@@ -9,7 +9,7 @@ import arrayShuffle from "array-shuffle";
 import Time from "./Time";
 import Score from "./Score";
 import { RecognizerUpdate, useNoteRecognizer } from "./use-note-recognizer";
-import { useImagePreloader } from "./use-image-preloader";
+import Note from "./Note";
 
 interface Props {
   instrumentCards: INSTRUMENT_CARD[];
@@ -54,10 +54,6 @@ const QuizScreen: React.FC<Props> = ({
     checkedNoteNames: new Set(),
   });
 
-  const { isLoaded: isCardImagesPreloaded, hasFailures } = useImagePreloader(
-    instrumentCards.flatMap((ic) => ic.noteCards.map((c) => c.img))
-  );
-
   const {
     // TODO: handle no-specch at start
     isRunning,
@@ -65,7 +61,7 @@ const QuizScreen: React.FC<Props> = ({
     isCatchPhaseSpoken,
     supportsSpeechRecognition,
     start,
-    stop, 
+    stop,
     results,
   } = useNoteRecognizer();
 
@@ -229,15 +225,13 @@ const QuizScreen: React.FC<Props> = ({
     }
   }, [isPrimed]);
 
-  useEffect(() => {
-    // start speech recognizer once images are loaded to prevent it from timing out during that time or listening to nonsense.
-    isCardImagesPreloaded && start();
-  }, [isCardImagesPreloaded]);
 
   useEffect(() => {
     // on mount, clear these values
     addCorrectAnswer(null);
     addMissedAnswer(null);
+    // start speech recognizer
+     start();
   }, []);
 
   if (cardCount === 0) {
@@ -254,30 +248,16 @@ const QuizScreen: React.FC<Props> = ({
         {currentInstumentCard.instrument} #
         {isCatchPhaseSpoken ? currentInstumentCard.cardNumber : ""}
       </h4>
-      <div className="flex flex-col items-center justify-center bg-gray-900 text-white font-sans m-4 p-4 min-h-[510px]">
-        {isCardImagesPreloaded &&
-          isCatchPhaseSpoken &&
-          noteCards.map((noteCard) => (
-            <img
-              key={
-                noteCard.octave * 100 +
-                noteCard.pitch * 10 +
-                noteCard.accidental
-              }
-              src={noteCard.img}
-              className="w-[500px] h-[240px]"
-              alt="card"
-            />
-          ))}
-        {isCardImagesPreloaded && isRunning && isMicrophoneAvailable && !isCatchPhaseSpoken && (
+      <div className="flex flex-col items-center justify-center bg-gray-900 text-white font-sans m-4 p-4 min-h-[632px]">
+        {isCatchPhaseSpoken &&
+          noteCards.map((noteCard) => <Note card={noteCard} />)}
+        {isRunning && isMicrophoneAvailable && !isCatchPhaseSpoken && (
           <p className="text-white font-sans">Say "because band" to start...</p>
         )}
-        {isCardImagesPreloaded && (!isRunning || !isMicrophoneAvailable) && (
+        {(!isRunning || !isMicrophoneAvailable) && (
           <p className="text-white font-sans">Start speech recognition...</p>
         )}
-        {!isCardImagesPreloaded && (
-          <p className="text-white font-sans">Preloading images...</p>
-        )}
+
         {/* TODO: handle failure states here as well (IE: no-speech, network, image load failure) */}
       </div>
       <div className="flex flex-col md:flex-row md:w-full justify-center">

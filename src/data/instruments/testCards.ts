@@ -1,4 +1,3 @@
-import { TREBLE_CLEF_IMAGES } from "../cardImageMap";
 import { CARD_ACCIDENTAL_MAP, TREBLE_CARDS } from "../cards";
 import { ACCIDENTAL, CLEF, NOTE_NAME, OCTAVE, PITCH } from "../pitch";
 import { INSTRUMENT, INSTRUMENT_CARD } from "./instrument";
@@ -10,20 +9,18 @@ export const FLUTE_A_SHARP_B_FLAT_4: INSTRUMENT_CARD = {
   cardNumber: 1,
   noteCards: [
     {
-      clef: CLEF.TREBLE,
-      accidental: ACCIDENTAL.SHARP,
-      noteName: NOTE_NAME.A_SHARP,
-      octave: OCTAVE.FOURTH,
+      clef: CLEF.BASS,
+      accidental: ACCIDENTAL.NATURAL,
+      noteName: NOTE_NAME.F_NATURAL,
+      octave: OCTAVE.FIRST,
       pitch: PITCH.A_SHARP_B_FLAT_4,
-      img: TREBLE_CLEF_IMAGES[PITCH.A_SHARP_B_FLAT_4]!![ACCIDENTAL.SHARP]!!,
     },
     {
-      clef: CLEF.TREBLE,
-      accidental: ACCIDENTAL.FLAT,
-      noteName: NOTE_NAME.B_FLAT,
+      clef: CLEF.BASS,
+      accidental: ACCIDENTAL.NATURAL,
+      noteName: NOTE_NAME.A_FLAT,
       octave: OCTAVE.FOURTH,
       pitch: PITCH.A_SHARP_B_FLAT_4,
-      img: TREBLE_CLEF_IMAGES[PITCH.A_SHARP_B_FLAT_4]!![ACCIDENTAL.FLAT]!!,
     },
   ],
 };
@@ -38,7 +35,6 @@ export const FLUTE_A_NATURAL_4: INSTRUMENT_CARD = {
       noteName: NOTE_NAME.A_NATURAL,
       octave: OCTAVE.FOURTH,
       pitch: PITCH.A_NATURAL_4,
-      img: TREBLE_CLEF_IMAGES[PITCH.A_NATURAL_4]!![ACCIDENTAL.NATURAL]!!,
     },
   ],
 };
