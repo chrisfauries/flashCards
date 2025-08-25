@@ -14,11 +14,6 @@ import ResultsScreen from "./ResultsScreen";
 import { useStopwatch } from "react-timer-hook";
 import { useSearchParams } from "react-router-dom";
 import useIsMobile from "./use-is-mobile";
-import Note from "./Note";
-import {
-  FLUTE_A_NATURAL_4,
-  FLUTE_A_SHARP_B_FLAT_4,
-} from "./data/instruments/testCards";
 
 const getInitInstrument = (instrument: string) => {
   if (!instrument) return "";

@@ -6,7 +6,6 @@ import {
   Voice,
   Formatter,
   Beam,
-  Stem,
   Accidental,
 } from "vexflow";
 import { CARD } from "./data/cards";
