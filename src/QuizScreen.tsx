@@ -1,4 +1,4 @@
-import React, { use, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { NOTE_NAME } from "./data/pitch";
 import {
   INSTRUMENT_CARD,
@@ -8,8 +8,8 @@ import { PHASE } from "./data/phase";
 import arrayShuffle from "array-shuffle";
 import Time from "./Time";
 import Score from "./Score";
-import { RecognizerUpdate, useNoteRecognizer } from "./use-note-recognizer";
 import Note from "./Note";
+import { RecognizerUpdate } from "./use-recognizer";
 
 interface Props {
   instrumentCards: INSTRUMENT_CARD[];
@@ -23,6 +23,10 @@ interface Props {
   addMissedAnswer: React.ActionDispatch<
     [newValue: MISSED_INSTRUMENT_CARD | null]
   >;
+  isCatchPhaseSpoken: boolean;
+  resetCatchPhaseFlag: () => void;
+  results: RecognizerUpdate[];
+  resetResults: () => void;
 }
 
 const QuizScreen: React.FC<Props> = ({
@@ -35,6 +39,10 @@ const QuizScreen: React.FC<Props> = ({
   correctAnswers,
   addCorrectAnswer,
   addMissedAnswer,
+  isCatchPhaseSpoken,
+  resetCatchPhaseFlag,
+  results,
+  resetResults,
 }) => {
   const nextResultToHandle = useRef(0);
   const cardCount = orderedInstrumentCards.length;
@@ -54,27 +62,13 @@ const QuizScreen: React.FC<Props> = ({
     checkedNoteNames: new Set(),
   });
 
-  const {
-    // TODO: handle no-specch at start
-    isRunning,
-    isMicrophoneAvailable,
-    isCatchPhaseSpoken,
-    supportsSpeechRecognition,
-    start,
-    stop,
-    results,
-  } = useNoteRecognizer();
-
   const updater = (result: RecognizerUpdate) => {
     if (waitingForFinalResult.current.i > instrumentCardIndex) {
       console.warn("executing out of sync, this is a bug");
     }
 
-    // For finalized values, we check all alternatives for a right answer.
-    // If no answer is right, we do one of two things:
-    // 1) if no wrong answer (all-empty), this is a no-op
-    // 2) if wrong answers, use the first one as the default   TODO: sort by confidence score in the future.
-    if (result.hasNewFinalizedRecognizedNoteNames) {
+    // For finalized values: if wrong answers, mark as wrong and advance
+    if (result.isFinal) {
       // we need to determine if we are verifying a previous card or the current one.
       if (waitingForFinalResult.current.i < instrumentCardIndex) {
         // verifying old result
@@ -83,71 +77,39 @@ const QuizScreen: React.FC<Props> = ({
             (noteCard) => noteCard.noteName
           )
         );
-        for (let alt of result.newestFinzalizedRecognizedNoteNameAlternatives) {
-          if (alt.every((x) => notesToVerify.has(x))) {
-            waitingForFinalResult.current = {
-              i: instrumentCardIndex,
-              checkedNoteNames: new Set(),
-            };
-            return;
-          }
+
+        if (result.result.every((x) => notesToVerify.has(x))) {
+          waitingForFinalResult.current = {
+            i: instrumentCardIndex,
+            checkedNoteNames: new Set(),
+          };
+          return;
         }
+
         console.warn("unable to verify previous result");
       }
 
-      let firstMatchedIncorrectAnswer: NOTE_NAME[] = [];
-      for (let alt of result.newestFinzalizedRecognizedNoteNameAlternatives) {
-        if (alt.length === 0) {
-          continue;
-        }
-        // one of the alts matches correctly. break and return as correct.
-        // first condition allows for the entire set of right responses to be in the answer.
-        // second condition allows for each answer to be spoken individually
-        if (alt.every((x) => noteNames.has(x))) {
-          waitingForFinalResult.current = {
-            i: instrumentCardIndex,
-            checkedNoteNames: new Set([
-              ...Array.from(waitingForFinalResult.current.checkedNoteNames),
-              ...alt,
-            ]),
-          };
+      advance(false, true, result.result);
 
-          advance(true, true, alt);
-          return;
-        } else {
-          // this alt has the wrong answer it in. Save if the first one.
-          if (firstMatchedIncorrectAnswer.length === 0) {
-            firstMatchedIncorrectAnswer = alt;
-          }
-        }
-      }
-
-      // We couldn't find a right answer but we did find at least one wrong answer.
-      if (firstMatchedIncorrectAnswer.length > 0) {
-        advance(false, true, firstMatchedIncorrectAnswer);
-      }
       return;
     }
 
-    // For Low confidence, only match if it's correct
+    // For Intermediate results, only match if it's correct
     // will advance if correct but will wait til finalized before allowing next low confidence check
     if (
-      result.hasNewLowConfidenceNoteRecognitions &&
+      !result.isFinal &&
       waitingForFinalResult.current.i === instrumentCardIndex
     ) {
-      if (
-        result.currentLowConfidenceNoteRecognitions.every((x) =>
-          noteNames.has(x)
-        )
-      ) {
+      if (result.result.every((x) => noteNames.has(x))) {
+
         waitingForFinalResult.current = {
           i: instrumentCardIndex,
           checkedNoteNames: new Set([
             ...Array.from(waitingForFinalResult.current.checkedNoteNames),
-            ...result.currentLowConfidenceNoteRecognitions,
+            ...result.result,
           ]),
         };
-        advance(true, false, result.currentLowConfidenceNoteRecognitions);
+        advance(true, false, result.result);
       }
       return;
     }
@@ -200,7 +162,6 @@ const QuizScreen: React.FC<Props> = ({
     if (instrumentCardIndex + 1 === cardCount) {
       pauseTimer();
       setPhase(PHASE.RESULTS);
-      stop();
     } else {
       setCurrentCardIndex(instrumentCardIndex + 1);
     }
@@ -209,7 +170,8 @@ const QuizScreen: React.FC<Props> = ({
   useEffect(() => {
     if (!isPrimed && isCatchPhaseSpoken) {
       setIsPrimed(true);
-      nextResultToHandle.current = results.length;
+      resetResults();
+      nextResultToHandle.current = 0;
       return;
     }
     if (results.length - 1 < nextResultToHandle.current) return;
@@ -225,21 +187,16 @@ const QuizScreen: React.FC<Props> = ({
     }
   }, [isPrimed]);
 
-
   useEffect(() => {
     // on mount, clear these values
     addCorrectAnswer(null);
     addMissedAnswer(null);
-    // start speech recognizer
-     start();
+    setIsPrimed(false);
+    resetCatchPhaseFlag();
   }, []);
 
   if (cardCount === 0) {
     return <div>No cards found for this instrument and level.</div>;
-  }
-
-  if (!supportsSpeechRecognition) {
-    return <div>Your browser does not support speech to text recognition</div>;
   }
 
   return (
@@ -250,15 +207,10 @@ const QuizScreen: React.FC<Props> = ({
       </h4>
       <div className="flex flex-col items-center justify-center bg-gray-900 text-white font-sans m-4 p-4 min-h-[632px]">
         {isCatchPhaseSpoken &&
-          noteCards.map((noteCard) => <Note card={noteCard} />)}
-        {isRunning && isMicrophoneAvailable && !isCatchPhaseSpoken && (
+          noteCards.map((noteCard) => <Note key={noteCard.pitch} card={noteCard} />)}
+        {!isCatchPhaseSpoken && (
           <p className="text-white font-sans">Say "because band" to start...</p>
         )}
-        {(!isRunning || !isMicrophoneAvailable) && (
-          <p className="text-white font-sans">Start speech recognition...</p>
-        )}
-
-        {/* TODO: handle failure states here as well (IE: no-speech, network, image load failure) */}
       </div>
       <div className="flex flex-col md:flex-row md:w-full justify-center">
         <Time minutes={minutes} seconds={seconds} />

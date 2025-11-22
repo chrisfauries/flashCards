@@ -14,6 +14,7 @@ import ResultsScreen from "./ResultsScreen";
 import { useStopwatch } from "react-timer-hook";
 import { useSearchParams } from "react-router-dom";
 import useIsMobile from "./use-is-mobile";
+import useRecognizer from "./use-recognizer";
 
 const getInitInstrument = (instrument: string) => {
   if (!instrument) return "";
@@ -35,6 +36,18 @@ const getInitLevel = (level: string) => {
 };
 
 function App() {
+  const {
+    modelStatus,
+    audioStatus,
+    progress,
+    error,
+    result,
+    partialResult,
+    isCatchPhaseSpoken,
+    resetCatchPhaseFlag,
+    results,
+    resetResults
+  } = useRecognizer();
   const isMobile = useIsMobile();
   const [queryParams, setQueryParams] = useSearchParams();
   const queryParamValues = Object.fromEntries(
@@ -78,14 +91,14 @@ function App() {
     });
   }, [instrument, level]);
 
-  if (isMobile) {
-    return (
-      <div className="App">
-        This app is currently not supported on Mobile devices. Please use your
-        chromebook or another desktop/laptop device.
-      </div>
-    );
-  }
+  // if (isMobile) {
+  //   return (
+  //     <div className="App">
+  //       This app is currently not supported on Mobile devices. Please use your
+  //       chromebook or another desktop/laptop device.
+  //     </div>
+  //   );
+  // }
 
   switch (phase) {
     case PHASE.SETUP:
@@ -95,6 +108,10 @@ function App() {
           instrument={instrument}
           setInstrument={setInstrument}
           level={level}
+          modelStatus={modelStatus}
+          audioStatus={audioStatus}
+          loadingProgress={progress}
+          loadingError={error}
           setLevel={setLevel}
         />
       );
@@ -113,6 +130,10 @@ function App() {
           correctAnswers={correctAnswers}
           addCorrectAnswer={addCorrectAnswer}
           addMissedAnswer={addMissedAnswer}
+          isCatchPhaseSpoken={isCatchPhaseSpoken}
+          resetCatchPhaseFlag={resetCatchPhaseFlag}
+          results={results}
+          resetResults={resetResults}
         />
       );
       break;
@@ -132,7 +153,14 @@ function App() {
     default:
   }
 
-  return <div className="App">{phaseComponent}</div>;
+  return (
+    <div className="App">
+      {phaseComponent}
+      <p>Result: {result}</p>
+      <p>Partial Result: {partialResult}</p>
+      <p>Is catch phase spoken: {isCatchPhaseSpoken ? "true" : "false"}</p>
+    </div>
+  );
 }
 
 export default App;
