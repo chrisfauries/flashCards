@@ -101,7 +101,6 @@ const QuizScreen: React.FC<Props> = ({
       waitingForFinalResult.current.i === instrumentCardIndex
     ) {
       if (result.result.every((x) => noteNames.has(x))) {
-
         waitingForFinalResult.current = {
           i: instrumentCardIndex,
           checkedNoteNames: new Set([
@@ -207,7 +206,16 @@ const QuizScreen: React.FC<Props> = ({
       </h4>
       <div className="flex flex-col items-center justify-center bg-gray-900 text-white font-sans m-4 p-4 min-h-[632px]">
         {isCatchPhaseSpoken &&
-          noteCards.map((noteCard) => <Note key={noteCard.pitch} card={noteCard} />)}
+          noteCards.map((noteCard) => (
+            <Note
+              key={
+                currentInstumentCard.frequency / 10000 +
+                currentInstumentCard.cardNumber +
+                noteCard.noteName * 100
+              }
+              card={noteCard}
+            />
+          ))}
         {!isCatchPhaseSpoken && (
           <p className="text-white font-sans">Say "because band" to start...</p>
         )}

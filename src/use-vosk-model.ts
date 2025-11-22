@@ -55,7 +55,7 @@ const useVoskModel = (): UseVoskModelReturn => {
             chunks.push(value);
             receivedLength += value.length;
             if (total > 0) {
-              setProgress(Math.round((receivedLength / total) * 100));
+              setProgress(Math.min(100, Math.round((receivedLength / total) * 100)));
             }
           }
         }
