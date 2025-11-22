@@ -13,7 +13,6 @@ import { getCardsForQuiz } from "./data/instruments/cardAccessor";
 import ResultsScreen from "./ResultsScreen";
 import { useStopwatch } from "react-timer-hook";
 import { useSearchParams } from "react-router-dom";
-import useIsMobile from "./use-is-mobile";
 import useRecognizer from "./use-recognizer";
 
 const getInitInstrument = (instrument: string) => {
@@ -41,14 +40,11 @@ function App() {
     audioStatus,
     progress,
     error,
-    result,
-    partialResult,
     isCatchPhaseSpoken,
     resetCatchPhaseFlag,
     results,
-    resetResults
+    resetResults,
   } = useRecognizer();
-  const isMobile = useIsMobile();
   const [queryParams, setQueryParams] = useSearchParams();
   const queryParamValues = Object.fromEntries(
     Array.from(queryParams.entries())
@@ -90,15 +86,6 @@ function App() {
       level: level,
     });
   }, [instrument, level]);
-
-  // if (isMobile) {
-  //   return (
-  //     <div className="App">
-  //       This app is currently not supported on Mobile devices. Please use your
-  //       chromebook or another desktop/laptop device.
-  //     </div>
-  //   );
-  // }
 
   switch (phase) {
     case PHASE.SETUP:
@@ -153,14 +140,7 @@ function App() {
     default:
   }
 
-  return (
-    <div className="App">
-      {phaseComponent}
-      <p>Result: {result}</p>
-      <p>Partial Result: {partialResult}</p>
-      <p>Is catch phase spoken: {isCatchPhaseSpoken ? "true" : "false"}</p>
-    </div>
-  );
+  return <div className="App">{phaseComponent}</div>;
 }
 
 export default App;

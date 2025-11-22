@@ -30,7 +30,7 @@ const ModelLoadingBar: React.FC<Props> = ({
       <div className="text-base  mb-2">
         <span>Microphone: {audioStatus}</span>
       </div>
-      {(modelStatus === VoskModelStatus.DOWNLOADING || progress < 100) && (
+      {(modelStatus === VoskModelStatus.DOWNLOADING) && (
         <>
           <div className="text-base  mb-2">{progress > 0 && <span>Downloading... {progress}%</span>}</div>
           <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">

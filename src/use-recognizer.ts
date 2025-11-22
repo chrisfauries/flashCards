@@ -83,10 +83,8 @@ registerProcessor('vosk-processor', VoskProcessor);
 
 interface UseRecognizerReturn extends UseVoskModelReturn {
   audioStatus: AudioStatus;
-  result: string;
   results: RecognizerUpdate[];
   resetResults: () => void;
-  partialResult: string;
   isCatchPhaseSpoken: boolean;
   resetCatchPhaseFlag: () => void;
 }
@@ -100,8 +98,6 @@ const useRecognizer = (): UseRecognizerReturn => {
 
   const [results, setResults] = useState<RecognizerUpdate[]>([]);
   const resetResults = useCallback(() => setResults([]), [setResults]);
-  const [result, setResult] = useState("");
-  const [partialResult, setPartialResult] = useState("");
   const [isCatchPhaseSpoken, setIsCatchPhaseSpoken] = useState(false);
   const resetCatchPhaseFlag = useCallback(
     () => setIsCatchPhaseSpoken(false),
@@ -167,12 +163,9 @@ const useRecognizer = (): UseRecognizerReturn => {
           },
         ];
       });
-
-      isFinal && setResult(text);
-      !isFinal && setPartialResult(text);
     },
 
-    [checkForCatchPhase, setPartialResult, setResult, setResults]
+    [checkForCatchPhase, setResults]
   );
 
   const startMicrophone = async (loadedModel: Vosk.Model) => {
@@ -256,10 +249,8 @@ const useRecognizer = (): UseRecognizerReturn => {
     modelStatus,
     ...restOfVoskModel,
     audioStatus,
-    result,
     results,
     resetResults,
-    partialResult,
     isCatchPhaseSpoken,
     resetCatchPhaseFlag,
   };
