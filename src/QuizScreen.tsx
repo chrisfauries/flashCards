@@ -69,15 +69,14 @@ const QuizScreen: React.FC<Props> = ({
 
     // For finalized values: if wrong answers, mark as wrong and advance
     if (result.isFinal) {
+      const notesToVerify = new Set(
+        instrumentCards[waitingForFinalResult.current.i].noteCards.map(
+          (noteCard) => noteCard.noteName
+        )
+      );
+
       // we need to determine if we are verifying a previous card or the current one.
       if (waitingForFinalResult.current.i < instrumentCardIndex) {
-        // verifying old result
-        const notesToVerify = new Set(
-          instrumentCards[waitingForFinalResult.current.i].noteCards.map(
-            (noteCard) => noteCard.noteName
-          )
-        );
-
         if (result.result.every((x) => notesToVerify.has(x))) {
           waitingForFinalResult.current = {
             i: instrumentCardIndex,
@@ -89,7 +88,53 @@ const QuizScreen: React.FC<Props> = ({
         console.warn("unable to verify previous result");
       }
 
-      advance(false, true, result.result);
+      // We want to make partial results here, in case there is a pause because note names
+      if (waitingForFinalResult.current.i === instrumentCardIndex) {
+        const notesVerified = waitingForFinalResult.current.checkedNoteNames;
+        let resultContainsWrongAnswsers = false;
+        result.result.forEach((result) => {
+          if (notesToVerify.has(result)) {
+            notesVerified.add(result);
+          } else {
+            resultContainsWrongAnswsers = true;
+          }
+        });
+
+        if (resultContainsWrongAnswsers) {
+          const allAnswers = [...result.result];
+          waitingForFinalResult.current.checkedNoteNames.forEach((nn) =>
+            allAnswers.push(nn)
+          );
+          advance(false, true, allAnswers);
+          return;
+        }
+
+        // We have at least a partial match
+        if (notesVerified.size > 0) {
+          if (notesVerified.size > notesToVerify.size) {
+            console.warn(
+              "Verified more notes than were possible, this is a bug"
+            );
+          } else if (
+            notesVerified.size === notesToVerify.size &&
+            Array.from(notesVerified).reduce(
+              (acc, verifiedNote) => notesToVerify.has(verifiedNote) && acc,
+              true
+            )
+          ) {
+            // Full Match
+            advance(true, true, Array.from(notesVerified));
+            return;
+          } else {
+            // Partial Match
+            waitingForFinalResult.current = {
+              ...waitingForFinalResult.current,
+              checkedNoteNames: notesVerified,
+            };
+            return;
+          }
+        }
+      }
 
       return;
     }
