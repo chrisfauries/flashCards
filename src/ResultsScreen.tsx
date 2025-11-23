@@ -14,6 +14,7 @@ import Button from "./Button";
 import Time from "./Time";
 import Score from "./Score";
 import { LEVEL } from "./data/instruments/level";
+import { QUIZ_CARD_ACTION, QuizCardAction } from "./App";
 
 const getAchievementLevel = (
   totalSeconds: number,
@@ -53,6 +54,7 @@ interface Props {
   minutes: number;
   seconds: number;
   setPhase: React.Dispatch<React.SetStateAction<PHASE>>;
+  setQuizCards: React.ActionDispatch<[action: QuizCardAction]>;
 }
 
 const ResultsScreen: React.FC<Props> = ({
@@ -63,6 +65,7 @@ const ResultsScreen: React.FC<Props> = ({
   minutes,
   seconds,
   setPhase,
+  setQuizCards,
 }) => {
   const achievementLevel = getAchievementLevel(
     seconds + minutes * 60,
@@ -102,8 +105,32 @@ const ResultsScreen: React.FC<Props> = ({
         </div>
       )}
       <div className="flex flex-row w-full justify-center">
-        <Button onClick={() => setPhase(PHASE.QUIZZING)}>Retry</Button>
-        <Button onClick={() => setPhase(PHASE.SETUP)}>Reset</Button>
+        <Button
+          title="Test yourself again using the same set of flashcards in a different order!"
+          onClick={() => setPhase(PHASE.QUIZZING)}
+        >
+          Retry
+        </Button>
+        <Button
+          title="Go back to the main screen to choose a different instrument or level"
+          onClick={() => setPhase(PHASE.SETUP)}
+        >
+          Reset
+        </Button>
+        {missedAnswers.length ? (
+          <Button
+            title="Practice just the missed cards from above"
+            onClick={() => {
+              setQuizCards({
+                type: QUIZ_CARD_ACTION.SET_FOR_PRACTICE_MODE,
+                missedAnswers,
+              });
+              setPhase(PHASE.QUIZZING);
+            }}
+          >
+            Practice
+          </Button>
+        ) : <></>}
       </div>
     </>
   );

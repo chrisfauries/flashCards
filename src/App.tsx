@@ -34,6 +34,22 @@ const getInitLevel = (level: string) => {
   return "";
 };
 
+export enum QUIZ_CARD_ACTION {
+  SET_FOR_INSTRUMENT_AND_LEVEL,
+  SET_FOR_PRACTICE_MODE,
+}
+
+export type QuizCardAction =
+  | {
+      type: QUIZ_CARD_ACTION.SET_FOR_INSTRUMENT_AND_LEVEL;
+      level: LEVEL | "";
+      instrument: INSTRUMENT | "";
+    }
+  | {
+      type: QUIZ_CARD_ACTION.SET_FOR_PRACTICE_MODE;
+      missedAnswers: MISSED_INSTRUMENT_CARD[];
+    };
+
 function App() {
   const {
     modelStatus,
@@ -77,6 +93,21 @@ function App() {
     ) => (newValue ? [...state, newValue] : []),
     []
   );
+  const [quizCards, setQuizCards] = useReducer(
+    (state: INSTRUMENT_CARD[], action: QuizCardAction) => {
+      switch (action.type) {
+        case QUIZ_CARD_ACTION.SET_FOR_INSTRUMENT_AND_LEVEL: {
+          if (action.instrument && action.level) {
+            return getCardsForQuiz(instrument as INSTRUMENT, level as LEVEL);
+          }
+          return [];
+        }
+        case QUIZ_CARD_ACTION.SET_FOR_PRACTICE_MODE:
+          return action.missedAnswers;
+      }
+    },
+    []
+  );
 
   let phaseComponent;
 
@@ -84,6 +115,11 @@ function App() {
     setQueryParams({
       instrument: instrument,
       level: level,
+    });
+    setQuizCards({
+      type: QUIZ_CARD_ACTION.SET_FOR_INSTRUMENT_AND_LEVEL,
+      instrument,
+      level,
     });
   }, [instrument, level]);
 
@@ -106,9 +142,7 @@ function App() {
     case PHASE.QUIZZING:
       phaseComponent = (
         <QuizScreen
-          instrumentCards={Object.values(
-            getCardsForQuiz(instrument as INSTRUMENT, level as LEVEL) ?? {}
-          )}
+          instrumentCards={quizCards}
           setPhase={setPhase}
           pauseTimer={pause}
           resetTimer={reset}
@@ -134,6 +168,7 @@ function App() {
           correctAnswers={correctAnswers}
           missedAnswers={missedAnswers}
           setPhase={setPhase}
+          setQuizCards={setQuizCards}
         />
       );
       break;

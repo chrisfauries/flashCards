@@ -85,7 +85,37 @@ const QuizScreen: React.FC<Props> = ({
           return;
         }
 
-        console.warn("unable to verify previous result");
+        // If note names were said very quickly, the final result could contain two results.
+        if (instrumentCards.length >= waitingForFinalResult.current.i + 1) {
+          const combinedNotesToVerify = new Set(notesToVerify);
+          const nextNoteCards = instrumentCards[
+            waitingForFinalResult.current.i + 1
+          ].noteCards.map((noteCard) => noteCard.noteName);
+          nextNoteCards.forEach((x) => combinedNotesToVerify.add(x));
+
+          if (result.result.every((x) => combinedNotesToVerify.has(x))) {
+            console.log("rapid result");
+            waitingForFinalResult.current = {
+              i: instrumentCardIndex,
+              checkedNoteNames: new Set(nextNoteCards),
+            };
+            advance(true, true, nextNoteCards);
+            return;
+          }
+        }
+
+        console.warn({
+          error: "unable to verify previous result",
+          waitingForFinalResult,
+          result,
+        });
+        // The app will get stuck here unless we increment 'waitingForFinalResult.i'
+        // BUG: This is likely a result of the answers coming in too quickly
+        // POTENTIAL FIX: check to see if final contains both the current correct answer and previous correct answer.
+        waitingForFinalResult.current = {
+          i: instrumentCardIndex,
+          checkedNoteNames: new Set(),
+        };
       }
 
       // We want to make partial results here, in case there is a pause because note names
