@@ -11,29 +11,35 @@ import { getLevelCount } from "./data/instruments/cardAccessor";
 import { VoskModelStatus } from "./use-vosk-model";
 import { AudioStatus } from "./use-recognizer";
 import LoadingStatus from "./LoadingStatus";
+import { MODE } from "./data/instruments/mode";
+import ModeSelector from "./ModeSelector";
 
 interface Props {
   instrument: INSTRUMENT | "";
   setInstrument: React.Dispatch<React.SetStateAction<"" | INSTRUMENT>>;
   level: LEVEL | "";
+  setLevel: React.Dispatch<React.SetStateAction<"" | LEVEL>>;
   modelStatus: VoskModelStatus;
   audioStatus: AudioStatus;
   loadingProgress: number;
   loadingError: string | null;
-  setLevel: React.Dispatch<React.SetStateAction<"" | LEVEL>>;
   setPhase: React.Dispatch<React.SetStateAction<PHASE>>;
+  mode: MODE;
+  setMode: React.Dispatch<React.SetStateAction<MODE>>;
 }
 
 const SetupScreen: React.FC<Props> = ({
   instrument,
   setInstrument,
   level,
+  setLevel,
   loadingProgress,
   loadingError,
   modelStatus,
   audioStatus,
-  setLevel,
   setPhase,
+  mode,
+  setMode,
 }) => {
   return (
     <>
@@ -54,6 +60,11 @@ const SetupScreen: React.FC<Props> = ({
           setLevel={setLevel}
           disabled={!instrument}
         />
+        <ModeSelector
+          mode={mode}
+          setMode={setMode}
+          disabled={!instrument || !level}
+        />
         <Button
           onClick={() => setPhase(PHASE.QUIZZING)}
           disabled={
@@ -66,12 +77,12 @@ const SetupScreen: React.FC<Props> = ({
           Start
         </Button>
       </div>
-              <LoadingStatus
-          progress={loadingProgress}
-          modelStatus={modelStatus}
-          audioStatus={audioStatus}
-          error={loadingError}
-        />
+      <LoadingStatus
+        progress={loadingProgress}
+        modelStatus={modelStatus}
+        audioStatus={audioStatus}
+        error={loadingError}
+      />
     </>
   );
 };

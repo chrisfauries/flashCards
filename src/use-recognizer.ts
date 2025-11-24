@@ -10,6 +10,7 @@ import {
 } from "vosk-browser/dist/interfaces";
 import { NOTE_NAME } from "./data/pitch";
 import { parseNoteNames } from "./logic/parser";
+import debounce from "lodash.debounce";
 
 const areArraysEqualOrdered = (arr1: any[], arr2: any[]) => {
   if (arr1.length !== arr2.length) {
@@ -28,6 +29,16 @@ const areArraysEqualOrdered = (arr1: any[], arr2: any[]) => {
 export interface RecognizerUpdate {
   result: Array<NOTE_NAME>;
   isFinal: boolean;
+}
+
+export enum NavigationDirection {
+  FORWARD,
+  BACK,
+}
+
+export interface NavigationEvent {
+  time: number;
+  direction: NavigationDirection;
 }
 
 export enum AudioStatus {
@@ -64,6 +75,8 @@ const MUSICAL_NOTE_GRAMMAR = [
   "b",
   "b natural",
   "because band",
+  "back",
+  "next",
   "[unk]",
 ];
 
@@ -87,6 +100,7 @@ interface UseRecognizerReturn extends UseVoskModelReturn {
   resetResults: () => void;
   isCatchPhaseSpoken: boolean;
   resetCatchPhaseFlag: () => void;
+  navigationEvent: NavigationEvent | null;
 }
 
 const useRecognizer = (): UseRecognizerReturn => {
@@ -103,6 +117,8 @@ const useRecognizer = (): UseRecognizerReturn => {
     () => setIsCatchPhaseSpoken(false),
     [setIsCatchPhaseSpoken]
   );
+  const [navigationEvent, setNavigationEvent] =
+    useState<NavigationEvent | null>(null);
 
   const recognizerRef = useRef<any | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -128,12 +144,48 @@ const useRecognizer = (): UseRecognizerReturn => {
     [setIsCatchPhaseSpoken]
   );
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debouncedSetNavigationEvent = useCallback(
+    debounce(
+      (newEvent: NavigationEvent) => {
+        setNavigationEvent(newEvent);
+      },
+      500,
+      { leading: true, trailing: false }
+    ),
+    [setNavigationEvent]
+  );
+
+  const checkForNavigationPhase = useCallback(
+    (result: string) => {
+      if (/next/i.test(result)) {
+        debouncedSetNavigationEvent({
+          direction: NavigationDirection.FORWARD,
+          time: Date.now(),
+        });
+        return true;
+      }
+      if (/back/i.test(result)) {
+         debouncedSetNavigationEvent({
+          direction: NavigationDirection.BACK,
+          time: Date.now(),
+        });
+        return true;
+      }
+      return false;
+    },
+    [debouncedSetNavigationEvent]
+  );
+
   const processText = useCallback(
     (text: string, isFinal: boolean) => {
       if (text.length === 0) {
         return;
       }
       if (checkForCatchPhase(text)) {
+        return;
+      }
+      if (checkForNavigationPhase(text)) {
         return;
       }
 
@@ -165,7 +217,7 @@ const useRecognizer = (): UseRecognizerReturn => {
       });
     },
 
-    [checkForCatchPhase, setResults]
+    [checkForCatchPhase, checkForNavigationPhase, setResults]
   );
 
   const startMicrophone = async (loadedModel: Vosk.Model) => {
@@ -253,6 +305,7 @@ const useRecognizer = (): UseRecognizerReturn => {
     resetResults,
     isCatchPhaseSpoken,
     resetCatchPhaseFlag,
+    navigationEvent,
   };
 };
 

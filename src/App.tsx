@@ -14,6 +14,7 @@ import ResultsScreen from "./ResultsScreen";
 import { useStopwatch } from "react-timer-hook";
 import { useSearchParams } from "react-router-dom";
 import useRecognizer from "./use-recognizer";
+import { MODE } from "./data/instruments/mode";
 
 const getInitInstrument = (instrument: string) => {
   if (!instrument) return "";
@@ -32,6 +33,15 @@ const getInitLevel = (level: string) => {
   }
 
   return "";
+};
+const getInitMode = (mode: string) => {
+  if (!mode) return MODE.TIME_TRIAL_MODE;
+
+  for (const x of Object.values(MODE)) {
+    if (x.toLowerCase() === mode.toLowerCase()) return x;
+  }
+
+  return MODE.TIME_TRIAL_MODE;
 };
 
 export enum QUIZ_CARD_ACTION {
@@ -60,8 +70,13 @@ function App() {
     resetCatchPhaseFlag,
     results,
     resetResults,
+    navigationEvent
   } = useRecognizer();
-  const [queryParams, setQueryParams] = useSearchParams();
+  const [queryParams, setQueryParams] = useSearchParams({
+    instrument: "",
+    level: "",
+    mode: MODE.TIME_TRIAL_MODE,
+  });
   const queryParamValues = Object.fromEntries(
     Array.from(queryParams.entries())
   );
@@ -71,6 +86,9 @@ function App() {
   );
   const [level, setLevel] = useState<LEVEL | "">(
     getInitLevel(queryParamValues.level ?? "")
+  );
+  const [mode, setMode] = useState<MODE>(
+    getInitMode(queryParamValues.mode ?? "")
   );
 
   const [phase, setPhase] = useState<PHASE>(
@@ -113,9 +131,13 @@ function App() {
 
   useEffect(() => {
     setQueryParams({
-      instrument: instrument,
-      level: level,
+      instrument,
+      level,
+      mode,
     });
+  }, [setQueryParams, instrument, level, mode]);
+
+  useEffect(() => {
     setQuizCards({
       type: QUIZ_CARD_ACTION.SET_FOR_INSTRUMENT_AND_LEVEL,
       instrument,
@@ -136,12 +158,15 @@ function App() {
           loadingProgress={progress}
           loadingError={error}
           setLevel={setLevel}
+          mode={mode}
+          setMode={setMode}
         />
       );
       break;
     case PHASE.QUIZZING:
       phaseComponent = (
         <QuizScreen
+          mode={mode}
           instrumentCards={quizCards}
           setPhase={setPhase}
           pauseTimer={pause}
@@ -155,6 +180,7 @@ function App() {
           resetCatchPhaseFlag={resetCatchPhaseFlag}
           results={results}
           resetResults={resetResults}
+          navigationEvent={navigationEvent}
         />
       );
       break;

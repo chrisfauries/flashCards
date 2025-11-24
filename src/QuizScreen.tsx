@@ -1,17 +1,16 @@
-import React, { useEffect, useRef, useState } from "react";
-import { NOTE_NAME } from "./data/pitch";
+import React from "react";
 import {
   INSTRUMENT_CARD,
   MISSED_INSTRUMENT_CARD,
 } from "./data/instruments/instrument";
 import { PHASE } from "./data/phase";
-import arrayShuffle from "array-shuffle";
-import Time from "./Time";
-import Score from "./Score";
-import Note from "./Note";
-import { RecognizerUpdate } from "./use-recognizer";
+import {  NavigationEvent, RecognizerUpdate } from "./use-recognizer";
+import { MODE } from "./data/instruments/mode";
+import TimeTrialQuizScreen from "./TimeTrialQuizScreen";
+import ManualQuizScreen from "./ManualQuizScreen";
 
 interface Props {
+  mode: MODE;
   instrumentCards: INSTRUMENT_CARD[];
   setPhase: React.Dispatch<React.SetStateAction<PHASE>>;
   pauseTimer: () => void;
@@ -27,10 +26,13 @@ interface Props {
   resetCatchPhaseFlag: () => void;
   results: RecognizerUpdate[];
   resetResults: () => void;
+  navigationEvent: NavigationEvent | null;
+
 }
 
 const QuizScreen: React.FC<Props> = ({
-  instrumentCards: orderedInstrumentCards,
+  mode,
+  instrumentCards,
   setPhase,
   pauseTimer,
   resetTimer,
@@ -43,264 +45,38 @@ const QuizScreen: React.FC<Props> = ({
   resetCatchPhaseFlag,
   results,
   resetResults,
+  navigationEvent,
 }) => {
-  const nextResultToHandle = useRef(0);
-  const cardCount = orderedInstrumentCards.length;
-  const [isPrimed, setIsPrimed] = useState(false);
-  const [instrumentCards] = useState(arrayShuffle(orderedInstrumentCards));
-  const [instrumentCardIndex, setCurrentCardIndex] = useState(0);
-  const currentInstumentCard: INSTRUMENT_CARD | undefined =
-    instrumentCards[instrumentCardIndex];
-  const noteCards = currentInstumentCard.noteCards;
-  const noteNames = new Set(noteCards.map((noteCard) => noteCard.noteName));
-
-  const waitingForFinalResult = useRef<{
-    i: number;
-    checkedNoteNames: Set<NOTE_NAME>;
-  }>({
-    i: instrumentCardIndex,
-    checkedNoteNames: new Set(),
-  });
-
-  const updater = (result: RecognizerUpdate) => {
-    if (waitingForFinalResult.current.i > instrumentCardIndex) {
-      console.warn("executing out of sync, this is a bug");
-    }
-
-    // For finalized values: if wrong answers, mark as wrong and advance
-    if (result.isFinal) {
-      const notesToVerify = new Set(
-        instrumentCards[waitingForFinalResult.current.i].noteCards.map(
-          (noteCard) => noteCard.noteName
-        )
+  switch (mode) {
+    case MODE.TIME_TRIAL_MODE:
+      return (
+        <TimeTrialQuizScreen
+          instrumentCards={instrumentCards}
+          setPhase={setPhase}
+          pauseTimer={pauseTimer}
+          resetTimer={resetTimer}
+          minutes={minutes}
+          seconds={seconds}
+          correctAnswers={correctAnswers}
+          addCorrectAnswer={addCorrectAnswer}
+          addMissedAnswer={addMissedAnswer}
+          isCatchPhaseSpoken={isCatchPhaseSpoken}
+          resetCatchPhaseFlag={resetCatchPhaseFlag}
+          results={results}
+          resetResults={resetResults}
+        />
       );
-
-      // we need to determine if we are verifying a previous card or the current one.
-      if (waitingForFinalResult.current.i < instrumentCardIndex) {
-        if (result.result.every((x) => notesToVerify.has(x))) {
-          waitingForFinalResult.current = {
-            i: instrumentCardIndex,
-            checkedNoteNames: new Set(),
-          };
-          return;
-        }
-
-        // If note names were said very quickly, the final result could contain two results.
-        if (instrumentCards.length >= waitingForFinalResult.current.i + 1) {
-          const combinedNotesToVerify = new Set(notesToVerify);
-          const nextNoteCards = instrumentCards[
-            waitingForFinalResult.current.i + 1
-          ].noteCards.map((noteCard) => noteCard.noteName);
-          nextNoteCards.forEach((x) => combinedNotesToVerify.add(x));
-
-          if (result.result.every((x) => combinedNotesToVerify.has(x))) {
-            console.log("rapid result");
-            waitingForFinalResult.current = {
-              i: instrumentCardIndex,
-              checkedNoteNames: new Set(nextNoteCards),
-            };
-            advance(true, true, nextNoteCards);
-            return;
-          }
-        }
-
-        console.warn({
-          error: "unable to verify previous result",
-          waitingForFinalResult,
-          result,
-        });
-        // The app will get stuck here unless we increment 'waitingForFinalResult.i'
-        // BUG: This is likely a result of the answers coming in too quickly
-        // POTENTIAL FIX: check to see if final contains both the current correct answer and previous correct answer.
-        waitingForFinalResult.current = {
-          i: instrumentCardIndex,
-          checkedNoteNames: new Set(),
-        };
-      }
-
-      // We want to make partial results here, in case there is a pause because note names
-      if (waitingForFinalResult.current.i === instrumentCardIndex) {
-        const notesVerified = waitingForFinalResult.current.checkedNoteNames;
-        let resultContainsWrongAnswsers = false;
-        result.result.forEach((result) => {
-          if (notesToVerify.has(result)) {
-            notesVerified.add(result);
-          } else {
-            resultContainsWrongAnswsers = true;
-          }
-        });
-
-        if (resultContainsWrongAnswsers) {
-          const allAnswers = [...result.result];
-          waitingForFinalResult.current.checkedNoteNames.forEach((nn) =>
-            allAnswers.push(nn)
-          );
-          advance(false, true, allAnswers);
-          return;
-        }
-
-        // We have at least a partial match
-        if (notesVerified.size > 0) {
-          if (notesVerified.size > notesToVerify.size) {
-            console.warn(
-              "Verified more notes than were possible, this is a bug"
-            );
-          } else if (
-            notesVerified.size === notesToVerify.size &&
-            Array.from(notesVerified).reduce(
-              (acc, verifiedNote) => notesToVerify.has(verifiedNote) && acc,
-              true
-            )
-          ) {
-            // Full Match
-            advance(true, true, Array.from(notesVerified));
-            return;
-          } else {
-            // Partial Match
-            waitingForFinalResult.current = {
-              ...waitingForFinalResult.current,
-              checkedNoteNames: notesVerified,
-            };
-            return;
-          }
-        }
-      }
-
-      return;
-    }
-
-    // For Intermediate results, only match if it's correct
-    // will advance if correct but will wait til finalized before allowing next low confidence check
-    if (
-      !result.isFinal &&
-      waitingForFinalResult.current.i === instrumentCardIndex
-    ) {
-      if (result.result.every((x) => noteNames.has(x))) {
-        waitingForFinalResult.current = {
-          i: instrumentCardIndex,
-          checkedNoteNames: new Set([
-            ...Array.from(waitingForFinalResult.current.checkedNoteNames),
-            ...result.result,
-          ]),
-        };
-        advance(true, false, result.result);
-      }
-      return;
-    }
-  };
-
-  const advance = (
-    isCorrect: boolean,
-    isVerified: boolean,
-    spokenNoteNames: NOTE_NAME[]
-  ) => {
-    if (!isCorrect) {
-      addMissedAnswer({
-        ...currentInstumentCard,
-        givenAnswer: Array.from(
-          new Set([
-            ...Array.from(waitingForFinalResult.current.checkedNoteNames),
-            ...spokenNoteNames,
-          ])
-        ),
-      });
-      if (isVerified) {
-        waitingForFinalResult.current = {
-          i: instrumentCardIndex + 1,
-          checkedNoteNames: new Set(),
-        };
-      }
-      advanceInstrumentCard();
-    }
-
-    // verifies every note card for this index was checked successfully
-    if (
-      noteNames.size === waitingForFinalResult.current.checkedNoteNames.size &&
-      Array.from(noteNames).every((x) =>
-        waitingForFinalResult.current.checkedNoteNames.has(x)
-      )
-    ) {
-      addCorrectAnswer(currentInstumentCard);
-      advanceInstrumentCard();
-
-      if (isVerified) {
-        waitingForFinalResult.current = {
-          i: instrumentCardIndex + 1,
-          checkedNoteNames: new Set(),
-        };
-      }
-    }
-  };
-
-  const advanceInstrumentCard = () => {
-    if (instrumentCardIndex + 1 === cardCount) {
-      pauseTimer();
-      setPhase(PHASE.RESULTS);
-    } else {
-      setCurrentCardIndex(instrumentCardIndex + 1);
-    }
-  };
-
-  useEffect(() => {
-    if (!isPrimed && isCatchPhaseSpoken) {
-      setIsPrimed(true);
-      resetResults();
-      nextResultToHandle.current = 0;
-      return;
-    }
-    if (results.length - 1 < nextResultToHandle.current) return;
-    for (let i = nextResultToHandle.current; i < results.length; i++) {
-      updater(results[i]);
-    }
-    nextResultToHandle.current = results.length;
-  }, [results, isPrimed, isCatchPhaseSpoken]);
-
-  useEffect(() => {
-    if (isPrimed) {
-      resetTimer(undefined, true);
-    }
-  }, [isPrimed]);
-
-  useEffect(() => {
-    // on mount, clear these values
-    addCorrectAnswer(null);
-    addMissedAnswer(null);
-    setIsPrimed(false);
-    resetCatchPhaseFlag();
-  }, []);
-
-  if (cardCount === 0) {
-    return <div>No cards found for this instrument and level.</div>;
+    case MODE.CHALLENGE_MODE:
+      return <div>Coming Soon!</div>;
+    case MODE.MANUAL_MODE:
+      return (
+        <ManualQuizScreen
+          instrumentCards={instrumentCards}
+          setPhase={setPhase}
+          navigationEvent={navigationEvent}
+        />
+      );
   }
-
-  return (
-    <>
-      <h4 className="text-4xl font-bold m-2">
-        {currentInstumentCard.instrument} #
-        {isCatchPhaseSpoken ? currentInstumentCard.cardNumber : ""}
-      </h4>
-      <div className="flex flex-col items-center justify-center bg-gray-900 text-white font-sans m-4 p-4 min-h-[632px]">
-        {isCatchPhaseSpoken &&
-          noteCards.map((noteCard) => (
-            <Note
-              key={
-                currentInstumentCard.frequency / 10000 +
-                currentInstumentCard.cardNumber +
-                noteCard.noteName * 100
-              }
-              card={noteCard}
-            />
-          ))}
-        {!isCatchPhaseSpoken && (
-          <p className="text-white font-sans">Say "because band" to start...</p>
-        )}
-      </div>
-      <div className="flex flex-col md:flex-row md:w-full justify-center">
-        <Time minutes={minutes} seconds={seconds} />
-        <Score correct={correctAnswers.length} total={instrumentCardIndex} />
-      </div>
-    </>
-  );
 };
 
 export default QuizScreen;
