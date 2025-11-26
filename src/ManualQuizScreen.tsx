@@ -31,7 +31,6 @@ const ManualQuizScreen: React.FC<Props> = ({
   navigationEvent,
 }) => {
   const isMobile = useIsMobile();
-
   const [instrumentCards, __setInstrumentCards] = useState(
     arrayShuffle(orderedInstrumentCards)
   );
@@ -118,10 +117,10 @@ const ManualQuizScreen: React.FC<Props> = ({
       </div>
       {isMobile && (
         <div className="flex flex-row w-full justify-center">
-          <Button title="Show the next card" onClick={goToNextCard}>
+          <Button title="Show the next card" onClick={() => goToNextCard()}>
             Back
           </Button>
-          <Button title="Show the previous card" onClick={goToPreviousCard}>
+          <Button title="Show the previous card" onClick={() => goToPreviousCard()}>
             Next
           </Button>
         </div>
