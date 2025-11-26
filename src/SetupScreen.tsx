@@ -13,6 +13,8 @@ import { AudioStatus } from "./use-recognizer";
 import LoadingStatus from "./LoadingStatus";
 import { MODE } from "./data/instruments/mode";
 import ModeSelector from "./ModeSelector";
+import { CHALLENGE_LEVEL } from "./data/breakpoints";
+import ChallengeLevelSelector from "./ChallengeLevelSelector";
 
 interface Props {
   instrument: INSTRUMENT | "";
@@ -26,6 +28,8 @@ interface Props {
   setPhase: React.Dispatch<React.SetStateAction<PHASE>>;
   mode: MODE;
   setMode: React.Dispatch<React.SetStateAction<MODE>>;
+  challengeLevel: CHALLENGE_LEVEL | "";
+  setChallengeLevel: React.Dispatch<React.SetStateAction<CHALLENGE_LEVEL | "">>;
 }
 
 const SetupScreen: React.FC<Props> = ({
@@ -40,6 +44,8 @@ const SetupScreen: React.FC<Props> = ({
   setPhase,
   mode,
   setMode,
+  challengeLevel,
+  setChallengeLevel
 }) => {
   return (
     <>
@@ -63,13 +69,22 @@ const SetupScreen: React.FC<Props> = ({
         <ModeSelector
           mode={mode}
           setMode={setMode}
+          setChallengeLevel={setChallengeLevel}
           disabled={!instrument || !level}
         />
+        {mode === MODE.CHALLENGE_MODE && (
+          <ChallengeLevelSelector
+            challengeLevel={challengeLevel}
+            setChallengeLevel={setChallengeLevel}
+            disabled={!instrument || !level}
+          />
+        )}
         <Button
           onClick={() => setPhase(PHASE.QUIZZING)}
           disabled={
             !instrument ||
             !level ||
+            (mode === MODE.CHALLENGE_MODE && !challengeLevel) ||
             modelStatus !== VoskModelStatus.READY ||
             audioStatus !== AudioStatus.CONNECTED
           }

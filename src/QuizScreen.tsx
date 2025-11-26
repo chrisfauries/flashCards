@@ -4,10 +4,12 @@ import {
   MISSED_INSTRUMENT_CARD,
 } from "./data/instruments/instrument";
 import { PHASE } from "./data/phase";
-import {  NavigationEvent, RecognizerUpdate } from "./use-recognizer";
+import { NavigationEvent, RecognizerUpdate } from "./use-recognizer";
 import { MODE } from "./data/instruments/mode";
 import TimeTrialQuizScreen from "./TimeTrialQuizScreen";
 import ManualQuizScreen from "./ManualQuizScreen";
+import ChallengeQuizScreen from "./ChallengeQuizScreen";
+import { CHALLENGE_LEVEL } from "./data/breakpoints";
 
 interface Props {
   mode: MODE;
@@ -27,7 +29,7 @@ interface Props {
   results: RecognizerUpdate[];
   resetResults: () => void;
   navigationEvent: NavigationEvent | null;
-
+  challengeLevel: "" | CHALLENGE_LEVEL;
 }
 
 const QuizScreen: React.FC<Props> = ({
@@ -46,6 +48,7 @@ const QuizScreen: React.FC<Props> = ({
   results,
   resetResults,
   navigationEvent,
+  challengeLevel,
 }) => {
   switch (mode) {
     case MODE.TIME_TRIAL_MODE:
@@ -67,7 +70,17 @@ const QuizScreen: React.FC<Props> = ({
         />
       );
     case MODE.CHALLENGE_MODE:
-      return <div>Coming Soon!</div>;
+      return (
+        <ChallengeQuizScreen
+          instrumentCards={instrumentCards}
+          setPhase={setPhase}
+          results={results}
+          resetResults={resetResults}
+          addCorrectAnswer={addCorrectAnswer}
+          addMissedAnswer={addMissedAnswer}
+          challengeLevel={challengeLevel}
+        />
+      );
     case MODE.MANUAL_MODE:
       return (
         <ManualQuizScreen

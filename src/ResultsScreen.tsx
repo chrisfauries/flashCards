@@ -1,4 +1,4 @@
-import React from "react";
+import React, { JSX } from "react";
 import {
   INSTRUMENT,
   INSTRUMENT_CARD,
@@ -8,6 +8,7 @@ import MissedCard from "./MissedCard";
 import {
   ACHIEVEMENT_LEVEL,
   ACHIEVEMENT_LEVEL_MULTIPLIER_MAP,
+  CHALLENGE_LEVEL,
 } from "./data/breakpoints";
 import { PHASE } from "./data/phase";
 import Button from "./Button";
@@ -15,6 +16,7 @@ import Time from "./Time";
 import Score from "./Score";
 import { LEVEL } from "./data/instruments/level";
 import { QUIZ_CARD_ACTION, QuizCardAction } from "./App";
+import { MODE } from "./data/instruments/mode";
 
 const getAchievementLevel = (
   totalSeconds: number,
@@ -31,7 +33,9 @@ const getAchievementLevel = (
   return highestBreakpoint;
 };
 
-const getAchievementColor = (achievementLevel: ACHIEVEMENT_LEVEL) => {
+const getAchievementColor = (
+  achievementLevel: ACHIEVEMENT_LEVEL | CHALLENGE_LEVEL
+) => {
   switch (achievementLevel) {
     case ACHIEVEMENT_LEVEL.KEEPING_PRACTICING:
       return "text-stone-50";
@@ -49,6 +53,8 @@ const getAchievementColor = (achievementLevel: ACHIEVEMENT_LEVEL) => {
 interface Props {
   instrument: INSTRUMENT;
   level: LEVEL;
+  mode: MODE;
+  challengeLevel: CHALLENGE_LEVEL | "";
   correctAnswers: INSTRUMENT_CARD[];
   missedAnswers: MISSED_INSTRUMENT_CARD[];
   minutes: number;
@@ -60,6 +66,8 @@ interface Props {
 const ResultsScreen: React.FC<Props> = ({
   instrument,
   level,
+  mode,
+  challengeLevel,
   correctAnswers,
   missedAnswers,
   minutes,
@@ -72,11 +80,44 @@ const ResultsScreen: React.FC<Props> = ({
     correctAnswers.length
   );
 
+  let allCorrectSubTitle: JSX.Element = <></>;
+
+  switch (mode) {
+    case MODE.TIME_TRIAL_MODE:
+      allCorrectSubTitle = (
+        <div>
+          For {instrument} Level {level}, you are a{" "}
+          {
+            <span className={getAchievementColor(achievementLevel)}>
+              {achievementLevel}
+            </span>
+          }{" "}
+          level note reader!
+        </div>
+      );
+      break;
+    case MODE.CHALLENGE_MODE:
+      allCorrectSubTitle = (
+        <div>
+          For {instrument} Level {level}, You are a{" "}
+          <span
+            className={getAchievementColor(challengeLevel as CHALLENGE_LEVEL)}
+          >
+            {challengeLevel}
+          </span>{" "}
+          level note reader!
+        </div>
+      );
+      break;
+  }
+
   return (
     <>
       <h1 className="text-6xl font-bold text-center mb-8">Results!</h1>
       <div className="flex flex-row w-full justify-center">
-        <Time minutes={minutes} seconds={seconds} />
+        {mode !== MODE.CHALLENGE_MODE && (
+          <Time minutes={minutes} seconds={seconds} />
+        )}
         <Score
           correct={correctAnswers.length}
           total={correctAnswers.length + missedAnswers.length}
@@ -94,15 +135,7 @@ const ResultsScreen: React.FC<Props> = ({
           <p>Keep practicing to improve your accuracy!</p>
         </div>
       ) : (
-        <div>
-          For {instrument} Level {level}, you are a{" "}
-          {
-            <span className={getAchievementColor(achievementLevel)}>
-              {achievementLevel}
-            </span>
-          }{" "}
-          level note reader!
-        </div>
+        allCorrectSubTitle
       )}
       <div className="flex flex-row w-full justify-center">
         <Button
@@ -130,7 +163,9 @@ const ResultsScreen: React.FC<Props> = ({
           >
             Practice
           </Button>
-        ) : <></>}
+        ) : (
+          <></>
+        )}
       </div>
     </>
   );

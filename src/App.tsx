@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer, useState } from "react";
+import React, { JSX, useEffect, useReducer, useState } from "react";
 import "./App.css";
 import {
   INSTRUMENT,
@@ -15,6 +15,7 @@ import { useStopwatch } from "react-timer-hook";
 import { useSearchParams } from "react-router-dom";
 import useRecognizer from "./use-recognizer";
 import { MODE } from "./data/instruments/mode";
+import { ACHIEVEMENT_LEVEL, CHALLENGE_LEVEL } from "./data/breakpoints";
 
 const getInitInstrument = (instrument: string) => {
   if (!instrument) return "";
@@ -43,6 +44,20 @@ const getInitMode = (mode: string) => {
 
   return MODE.TIME_TRIAL_MODE;
 };
+const getInitChallengeLevel = (
+  challengeLevel: string
+): CHALLENGE_LEVEL | "" => {
+  if (!challengeLevel) return "";
+
+  for (const x of Object.values(
+    ACHIEVEMENT_LEVEL
+  ) as unknown as CHALLENGE_LEVEL) {
+    if (x.toLowerCase() === challengeLevel.toLowerCase())
+      return x as CHALLENGE_LEVEL;
+  }
+
+  return "";
+};
 
 export enum QUIZ_CARD_ACTION {
   SET_FOR_INSTRUMENT_AND_LEVEL,
@@ -70,12 +85,13 @@ function App() {
     resetCatchPhaseFlag,
     results,
     resetResults,
-    navigationEvent
+    navigationEvent,
   } = useRecognizer();
   const [queryParams, setQueryParams] = useSearchParams({
     instrument: "",
     level: "",
     mode: MODE.TIME_TRIAL_MODE,
+    challengeLevel: "",
   });
   const queryParamValues = Object.fromEntries(
     Array.from(queryParams.entries())
@@ -89,6 +105,9 @@ function App() {
   );
   const [mode, setMode] = useState<MODE>(
     getInitMode(queryParamValues.mode ?? "")
+  );
+  const [challengeLevel, setChallengeLevel] = useState<CHALLENGE_LEVEL | "">(
+    getInitChallengeLevel(queryParamValues.challengeLevel ?? "")
   );
 
   const [phase, setPhase] = useState<PHASE>(
@@ -127,15 +146,16 @@ function App() {
     []
   );
 
-  let phaseComponent;
+  let phaseComponent: JSX.Element = <></>;
 
   useEffect(() => {
     setQueryParams({
       instrument,
       level,
       mode,
+      challengeLevel,
     });
-  }, [setQueryParams, instrument, level, mode]);
+  }, [setQueryParams, instrument, level, mode, challengeLevel]);
 
   useEffect(() => {
     setQuizCards({
@@ -160,6 +180,8 @@ function App() {
           setLevel={setLevel}
           mode={mode}
           setMode={setMode}
+          challengeLevel={challengeLevel}
+          setChallengeLevel={setChallengeLevel}
         />
       );
       break;
@@ -181,6 +203,7 @@ function App() {
           results={results}
           resetResults={resetResults}
           navigationEvent={navigationEvent}
+          challengeLevel={challengeLevel}
         />
       );
       break;
@@ -189,6 +212,8 @@ function App() {
         <ResultsScreen
           instrument={instrument as INSTRUMENT}
           level={level as LEVEL}
+          mode={mode}
+          challengeLevel={challengeLevel}
           seconds={seconds}
           minutes={minutes}
           correctAnswers={correctAnswers}

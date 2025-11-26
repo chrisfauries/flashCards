@@ -5,6 +5,19 @@ import arrayShuffle from "array-shuffle";
 import Note from "./Note";
 import { NavigationDirection, NavigationEvent } from "./use-recognizer";
 import Button from "./Button";
+import useIsMobile from "./use-is-mobile";
+
+const forwardMessage = (isMobile: boolean) => {
+  return isMobile
+    ? 'Press or say "Next" to show the next flash card'
+    : 'Press spacebar, the right arrow key, or say "Next" to show the next flash card';
+};
+
+const backMessage = (isMobile: boolean) => {
+  return isMobile
+    ? 'Press or say "Back" to show the previous flash card'
+    : 'Press backspace, the left arrow key, or say "Back" to show the previous flash card';
+};
 
 interface Props {
   instrumentCards: INSTRUMENT_CARD[];
@@ -17,6 +30,8 @@ const ManualQuizScreen: React.FC<Props> = ({
   setPhase,
   navigationEvent,
 }) => {
+  const isMobile = useIsMobile();
+
   const [instrumentCards, __setInstrumentCards] = useState(
     arrayShuffle(orderedInstrumentCards)
   );
@@ -101,6 +116,16 @@ const ManualQuizScreen: React.FC<Props> = ({
           />
         ))}
       </div>
+      {isMobile && (
+        <div className="flex flex-row w-full justify-center">
+          <Button title="Show the next card" onClick={goToNextCard}>
+            Back
+          </Button>
+          <Button title="Show the previous card" onClick={goToPreviousCard}>
+            Next
+          </Button>
+        </div>
+      )}
       <div className="flex flex-row w-full justify-center">
         <Button
           title="Shuffle the current cards and reset them from the beginning"
@@ -118,13 +143,11 @@ const ManualQuizScreen: React.FC<Props> = ({
           Reset
         </Button>
       </div>
-      <div className="flex flex-col md:flex-row md:w-full justify-center">
-        Press spacebar, the right arrow key, or say "Next" to show the next
-        flash card
+      <div className="flex flex-col md:flex-row md:w-full justify-center mb-8">
+        {forwardMessage(isMobile)}
       </div>
       <div className="flex flex-col md:flex-row md:w-full justify-center">
-        Press backspace, the left arrow key, or say "Back" to show the previous
-        flash card
+        {backMessage(isMobile)}
       </div>
     </>
   );
