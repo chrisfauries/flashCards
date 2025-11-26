@@ -52,7 +52,7 @@ const ManualQuizScreen: React.FC<Props> = ({
     () => __setCurrentCardIndex((x) => Math.max(x - 1, 0)),
     [__setCurrentCardIndex]
   );
-  const lastNavigationEventByVoice = useRef<NavigationEvent | null>(null);
+  const lastNavigationEventByVoice = useRef<NavigationEvent | null>(navigationEvent);
   const currentInstumentCard: INSTRUMENT_CARD | undefined =
     instrumentCards[instrumentCardIndex];
   const noteCards = currentInstumentCard.noteCards;
@@ -117,10 +117,10 @@ const ManualQuizScreen: React.FC<Props> = ({
       </div>
       {isMobile && (
         <div className="flex flex-row w-full justify-center">
-          <Button title="Show the next card" onClick={() => goToNextCard()}>
+          <Button title="Show the next card" onClick={() => goToPreviousCard()}>
             Back
           </Button>
-          <Button title="Show the previous card" onClick={() => goToPreviousCard()}>
+          <Button title="Show the previous card" onClick={() => goToNextCard()}>
             Next
           </Button>
         </div>
