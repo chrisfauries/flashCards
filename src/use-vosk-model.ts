@@ -16,58 +16,86 @@ export interface UseVoskModelReturn {
   error: string | null;
 }
 
+const CACHE_NAME = "vosk-model-v1";
+const MODEL_URL = "./model.tar.gz";
+
 const useVoskModel = (): UseVoskModelReturn => {
-  const [model, setModel] = useState<any | null>(null);
+  const [model, setModel] = useState<Vosk.Model | null>(null);
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState<VoskModelStatus>(
     VoskModelStatus.NOT_STARTED
   );
   const [error, setError] = useState<string | null>(null);
-  const loadedRef = useRef(false);
+  const initRef = useRef(false);
 
   useEffect(() => {
-    if (loadedRef.current || model || status !== VoskModelStatus.NOT_STARTED)
+    if (initRef.current || model || status !== VoskModelStatus.NOT_STARTED)
       return;
 
     const init = async () => {
       setError(null);
+      initRef.current = true;
 
       try {
-        setStatus(VoskModelStatus.DOWNLOADING);
-        setProgress(0);
+        let blob: Blob;
 
-        const response = await fetch("./model.tar.gz");
+        const cache = await caches.open(CACHE_NAME);
+        const cachedResponse = await cache.match(MODEL_URL);
 
-        const contentLength = response.headers.get("content-length");
-        const total = contentLength ? parseInt(contentLength, 10) : 0;
+        if (cachedResponse) {
+          setStatus(VoskModelStatus.INITIALIZING);
+          setProgress(100);
+          blob = await cachedResponse.blob();
+        } else {
+          setStatus(VoskModelStatus.DOWNLOADING);
+          setProgress(0);
 
-        if (!response.body) throw new Error("Response body is empty");
+          const response = await fetch(MODEL_URL);
 
-        const reader = response.body.getReader();
-        const chunks: Uint8Array[] = [];
-        let receivedLength = 0;
+          if (!response.body) throw new Error("Response body is empty");
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+          const contentLength = response.headers.get("content-length");
+          const total = contentLength ? parseInt(contentLength, 10) : 0;
 
-          if (value) {
-            chunks.push(value);
-            receivedLength += value.length;
-            if (total > 0) {
-              setProgress(Math.min(100, Math.round((receivedLength / total) * 100)));
+          const reader = response.body.getReader();
+          const chunks: Uint8Array[] = [];
+          let receivedLength = 0;
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            if (value) {
+              chunks.push(value);
+              receivedLength += value.length;
+              if (total > 0) {
+                setProgress(
+                  Math.min(100, Math.round((receivedLength / total) * 100))
+                );
+              }
             }
+          }
+
+          blob = new Blob(chunks, { type: "application/gzip" });
+
+          try {
+            await cache.put(
+              MODEL_URL,
+              new Response(blob, {
+                headers: { "Content-Type": "application/gzip" },
+              })
+            );
+          } catch (cacheErr) {
+            console.warn("Failed to cache model (non-fatal):", cacheErr);
           }
         }
 
         setStatus(VoskModelStatus.INITIALIZING);
-        const blob = new Blob(chunks, { type: "application/gzip" });
         const blobUrl = URL.createObjectURL(blob);
 
         const loadedModel = await createModel(blobUrl);
 
         setModel(loadedModel);
-        loadedRef.current = true;
         setStatus(VoskModelStatus.READY);
       } catch (err: any) {
         console.error("Vosk init failed:", err);
@@ -77,9 +105,9 @@ const useVoskModel = (): UseVoskModelReturn => {
     };
 
     init();
-  }, [status]);
+  }, [status, model]);
 
-  return { model, progress, modelStatus:status, error };
+  return { model, progress, modelStatus: status, error };
 };
 
 export default useVoskModel;
