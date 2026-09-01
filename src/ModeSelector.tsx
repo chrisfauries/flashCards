@@ -43,9 +43,9 @@ const ModeSelector: React.FC<Props> = ({
   const options = Object.values(MODE);
 
   return (
-    <div className={`w-full mb-6 transition-all duration-500 ${disabled ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
-      <div className="mb-4 flex items-center justify-center">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+    <div className={`w-full transition-all duration-500 ${disabled ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
+      <div className="mb-3 flex items-center justify-center">
+        <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
           Select Mode
         </h3>
       </div>
@@ -77,7 +77,6 @@ const ModeSelector: React.FC<Props> = ({
               `}
             >
               {getModeIcon(m)}
-              {/* Strip out the word "Mode" for a cleaner UI pill */}
               {m.replace(" Mode", "")}
             </button>
           );

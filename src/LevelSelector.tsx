@@ -32,14 +32,14 @@ const LevelSelector: React.FC<Props> = ({
   const options = Object.values(LEVEL).slice(0, levelCount);
 
   return (
-    <div className={`w-full mb-6 transition-all duration-500 ${disabled ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
-      <div className="mb-4 flex items-center justify-center">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+    <div className={`w-full transition-all duration-500 ${disabled ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
+      <div className="mb-3 flex items-center justify-center">
+        <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
           Select Level
         </h3>
       </div>
       
-      <div className="flex flex-wrap justify-center items-center gap-3 px-2 max-w-2xl mx-auto">
+      <div className="flex flex-wrap justify-center items-center gap-2.5 px-2 max-w-2xl mx-auto">
         {options.map((lvl, index) => {
           const isSelected = level === lvl;
           const selectedTheme = LEVEL_THEMES[lvl] || "bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-500/30";
@@ -52,7 +52,7 @@ const LevelSelector: React.FC<Props> = ({
               aria-pressed={isSelected}
               onClick={() => setLevel(lvl)}
               className={`
-                relative flex items-center justify-center w-12 h-12 rounded-full text-lg font-bold border
+                relative flex items-center justify-center w-11 h-11 rounded-full text-base font-bold border
                 transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]
                 active:scale-95 outline-none select-none
                 ${

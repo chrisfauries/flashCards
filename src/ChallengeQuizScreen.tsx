@@ -47,6 +47,7 @@ const ChallengeQuizScreen: React.FC<Props> = ({
   const lastCorrectnessState = useRef(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const lastWrongAnswersGiven = useRef<Set<NOTE_NAME> | null>(null);
+
   const currentInstumentCard: INSTRUMENT_CARD | undefined =
     instrumentCards[instrumentCardIndex];
   const noteCards = currentInstumentCard.noteCards;
@@ -70,8 +71,8 @@ const ChallengeQuizScreen: React.FC<Props> = ({
     reset();
     setIsCorrect(false);
     lastWrongAnswersGiven.current = null;
+    
     if (instrumentCardIndex >= instrumentCards.length - 1) {
-      // End this round
       setPhase(PHASE.RESULTS);
       setisPrimed(false);
       resetResults();
@@ -98,7 +99,6 @@ const ChallengeQuizScreen: React.FC<Props> = ({
 
   const handleResult = useCallback(
     (result: RecognizerUpdate) => {
-      // No time to wait for a final result
       if (result.isFinal) return;
       const spokenCards = new Set(result.result);
       if (noteCards.every((nc) => spokenCards.has(nc.noteName))) {
@@ -106,7 +106,6 @@ const ChallengeQuizScreen: React.FC<Props> = ({
       } else {
         lastWrongAnswersGiven.current = spokenCards;
       }
-
       nextResultToHandle.current += 1;
     },
     [noteCards]
@@ -150,36 +149,49 @@ const ChallengeQuizScreen: React.FC<Props> = ({
   }, [isCorrect, setCorrectAnswers]);
 
   return (
-    <>
-      <h4 className="text-4xl font-bold m-2">
-        {currentInstumentCard.instrument} #{currentInstumentCard.cardNumber}
-      </h4>
+    <div className="flex flex-col items-center w-full max-w-5xl mx-auto px-4 py-8 md:py-12 animate-in fade-in duration-500">
+      
+      <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white text-center mb-8">
+        {currentInstumentCard.instrument} 
+        <span className="text-indigo-500 ml-2">#{currentInstumentCard.cardNumber}</span>
+      </h2>
+
+      {/* Added strict min-h-[550px] md:min-h-[500px] to lock layout from jumping */}
       <div
         className={`
-          flex flex-col items-center justify-center 
-          transition-colors duration-300 ease-in-out
-          font-sans m-4 p-4 min-h-[632px] relative
-          ${isCorrect ? "bg-green-600" : "bg-gray-900"}
-          text-white
+          flex flex-col items-center justify-center w-full max-w-4xl rounded-[2rem] p-6 md:p-12 min-h-[550px] md:min-h-[500px] mb-8 relative overflow-hidden
+          transition-all duration-300 ease-out border
+          ${isCorrect 
+            ? "bg-emerald-500 border-emerald-400 shadow-[0_0_40px_rgba(16,185,129,0.4)] dark:bg-emerald-600 dark:border-emerald-500" 
+            : "bg-white dark:bg-slate-900 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border-slate-100 dark:border-slate-800"
+          }
         `}
       >
-        {noteCards.map((noteCard) => (
-          <Note
-            key={
-              currentInstumentCard.frequency / 10000 +
-              currentInstumentCard.cardNumber +
-              noteCard.noteName * 100
-            }
-            card={noteCard}
-          />
-        ))}
+        <div className="flex flex-col md:flex-row flex-wrap items-center justify-center gap-2 w-full z-10">
+          {noteCards.map((noteCard) => (
+            <div 
+              key={
+                currentInstumentCard.frequency / 10000 +
+                currentInstumentCard.cardNumber +
+                noteCard.noteName * 100
+              }
+              className="p-4 md:p-8 flex items-center justify-center"
+            >
+              <div className="scale-[1.15] md:scale-150 rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700 bg-white">
+                <Note card={noteCard} />
+              </div>
+            </div>
+          ))}
+        </div>
+        
         {isCorrect && <CheckMark />}
       </div>
-      <div className="flex flex-col md:flex-row md:w-full justify-center">
+
+      <div className="flex flex-wrap w-full justify-center gap-4">
         <CountdownDisplay milliseconds={timeLeft} />
         <Score correct={correctAnswers} total={instrumentCardIndex + 1} />
       </div>
-    </>
+    </div>
   );
 };
 

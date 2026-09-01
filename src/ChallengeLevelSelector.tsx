@@ -16,9 +16,9 @@ const ChallengeLevelSelector: React.FC<Props> = ({
     .filter((x) => x !== ACHIEVEMENT_LEVEL.KEEPING_PRACTICING && x !== ACHIEVEMENT_LEVEL.LIGHTNING);
 
   return (
-    <div className={`w-full mb-6 transition-all duration-500 animate-in fade-in slide-in-from-top-4 ${disabled ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
-      <div className="mb-4 flex items-center justify-center">
-        <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+    <div className={`w-full transition-all duration-500 animate-in fade-in slide-in-from-top-4 ${disabled ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
+      <div className="mb-3 flex items-center justify-center">
+        <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
           Challenge Difficulty
         </h3>
       </div>

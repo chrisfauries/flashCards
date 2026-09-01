@@ -49,10 +49,11 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
   const [isPrimed, setIsPrimed] = useState(false);
   const [instrumentCards] = useState(arrayShuffle(orderedInstrumentCards));
   const [instrumentCardIndex, setCurrentCardIndex] = useState(0);
+
   const currentInstumentCard: INSTRUMENT_CARD | undefined =
     instrumentCards[instrumentCardIndex];
-  const noteCards = currentInstumentCard.noteCards;
-  const noteNames = new Set(noteCards.map((noteCard) => noteCard.noteName));
+  const noteCards = currentInstumentCard?.noteCards;
+  const noteNames = new Set(noteCards?.map((noteCard) => noteCard.noteName));
 
   const waitingForFinalResult = useRef<{
     i: number;
@@ -67,7 +68,6 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
       console.warn("executing out of sync, this is a bug");
     }
 
-    // For finalized values: if wrong answers, mark as wrong and advance
     if (result.isFinal) {
       const notesToVerify = new Set(
         instrumentCards[waitingForFinalResult.current.i].noteCards.map(
@@ -75,7 +75,6 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
         )
       );
 
-      // we need to determine if we are verifying a previous card or the current one.
       if (waitingForFinalResult.current.i < instrumentCardIndex) {
         if (result.result.every((x) => notesToVerify.has(x))) {
           waitingForFinalResult.current = {
@@ -85,7 +84,6 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
           return;
         }
 
-        // If note names were said very quickly, the final result could contain two results.
         if (instrumentCards.length >= waitingForFinalResult.current.i + 1) {
           const combinedNotesToVerify = new Set(notesToVerify);
           const nextNoteCards = instrumentCards[
@@ -94,7 +92,6 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
           nextNoteCards.forEach((x) => combinedNotesToVerify.add(x));
 
           if (result.result.every((x) => combinedNotesToVerify.has(x))) {
-            console.log("rapid result");
             waitingForFinalResult.current = {
               i: instrumentCardIndex,
               checkedNoteNames: new Set(nextNoteCards),
@@ -103,25 +100,16 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
             return;
           }
         }
-
-        console.warn({
-          error: "unable to verify previous result",
-          waitingForFinalResult,
-          result,
-        });
-        // The app will get stuck here unless we increment 'waitingForFinalResult.i'
-        // BUG: This is likely a result of the answers coming in too quickly
-        // POTENTIAL FIX: check to see if final contains both the current correct answer and previous correct answer.
         waitingForFinalResult.current = {
           i: instrumentCardIndex,
           checkedNoteNames: new Set(),
         };
       }
 
-      // We want to make partial results here, in case there is a pause because note names
       if (waitingForFinalResult.current.i === instrumentCardIndex) {
         const notesVerified = waitingForFinalResult.current.checkedNoteNames;
         let resultContainsWrongAnswsers = false;
+
         result.result.forEach((result) => {
           if (notesToVerify.has(result)) {
             notesVerified.add(result);
@@ -139,12 +127,9 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
           return;
         }
 
-        // We have at least a partial match
         if (notesVerified.size > 0) {
           if (notesVerified.size > notesToVerify.size) {
-            console.warn(
-              "Verified more notes than were possible, this is a bug"
-            );
+            console.warn("Verified more notes than were possible, this is a bug");
           } else if (
             notesVerified.size === notesToVerify.size &&
             Array.from(notesVerified).reduce(
@@ -152,11 +137,9 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
               true
             )
           ) {
-            // Full Match
             advance(true, true, Array.from(notesVerified));
             return;
           } else {
-            // Partial Match
             waitingForFinalResult.current = {
               ...waitingForFinalResult.current,
               checkedNoteNames: notesVerified,
@@ -165,12 +148,9 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
           }
         }
       }
-
       return;
     }
 
-    // For Intermediate results, only match if it's correct
-    // will advance if correct but will wait til finalized before allowing next low confidence check
     if (
       !result.isFinal &&
       waitingForFinalResult.current.i === instrumentCardIndex
@@ -204,6 +184,7 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
           ])
         ),
       });
+
       if (isVerified) {
         waitingForFinalResult.current = {
           i: instrumentCardIndex + 1,
@@ -213,7 +194,6 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
       advanceInstrumentCard();
     }
 
-    // verifies every note card for this index was checked successfully
     if (
       noteNames.size === waitingForFinalResult.current.checkedNoteNames.size &&
       Array.from(noteNames).every((x) =>
@@ -249,6 +229,7 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
       return;
     }
     if (results.length - 1 < nextResultToHandle.current) return;
+
     for (let i = nextResultToHandle.current; i < results.length; i++) {
       updater(results[i]);
     }
@@ -262,7 +243,6 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
   }, [isPrimed]);
 
   useEffect(() => {
-    // on mount, clear these values
     addCorrectAnswer(null);
     addMissedAnswer(null);
     setIsPrimed(false);
@@ -270,36 +250,57 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
   }, []);
 
   if (cardCount === 0) {
-    return <div>No cards found for this instrument and level.</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen text-slate-500">
+        No cards found for this instrument and level.
+      </div>
+    );
   }
 
   return (
-    <>
-      <h4 className="text-4xl font-bold m-2">
-        {currentInstumentCard.instrument} #
-        {isCatchPhaseSpoken ? currentInstumentCard.cardNumber : ""}
-      </h4>
-      <div className="flex flex-col items-center justify-center bg-gray-900 text-white font-sans m-4 p-4 min-h-[632px]">
-        {isCatchPhaseSpoken &&
-          noteCards.map((noteCard) => (
-            <Note
-              key={
-                currentInstumentCard.frequency / 10000 +
-                currentInstumentCard.cardNumber +
-                noteCard.noteName * 100
-              }
-              card={noteCard}
-            />
-          ))}
-        {!isCatchPhaseSpoken && (
-          <p className="text-white font-sans">Say "because band" to start...</p>
+    <div className="flex flex-col items-center w-full max-w-5xl mx-auto px-4 py-8 md:py-12 animate-in fade-in duration-500">
+      
+      <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white text-center mb-8">
+        {currentInstumentCard.instrument}
+        {isCatchPhaseSpoken && (
+          <span className="text-indigo-500 ml-2">#{currentInstumentCard.cardNumber}</span>
+        )}
+      </h2>
+
+      {/* Added strict min-h-[550px] md:min-h-[500px] to lock layout from jumping */}
+      <div className="flex flex-col items-center justify-center w-full max-w-4xl bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 p-6 md:p-12 min-h-[550px] md:min-h-[500px] mb-8 relative overflow-hidden transition-colors duration-500">
+        {isCatchPhaseSpoken ? (
+          <div className="flex flex-col md:flex-row flex-wrap items-center justify-center gap-2 w-full">
+            {noteCards.map((noteCard) => (
+              <div 
+                key={
+                  currentInstumentCard.frequency / 10000 +
+                  currentInstumentCard.cardNumber +
+                  noteCard.noteName * 100
+                }
+                className="p-4 md:p-8 flex items-center justify-center"
+              >
+                <div className="scale-[1.15] md:scale-150 rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700 bg-white">
+                  <Note card={noteCard} />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center text-slate-400 dark:text-slate-500 animate-pulse">
+            <svg className="w-16 h-16 mb-4 opacity-50" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+            </svg>
+            <p className="text-xl font-medium tracking-wide">Say "because band" to start...</p>
+          </div>
         )}
       </div>
-      <div className="flex flex-col md:flex-row md:w-full justify-center">
+
+      <div className="flex flex-wrap w-full justify-center gap-4">
         <Time minutes={minutes} seconds={seconds} />
         <Score correct={correctAnswers.length} total={instrumentCardIndex} />
       </div>
-    </>
+    </div>
   );
 };
 
