@@ -19,12 +19,12 @@ const Button: React.FC<Props> = ({
   return (
     <div
       {...containerProps}
-      className={`flex m-8 ${containerProps?.className}`}
+      className={`flex ${containerProps?.className || ""}`}
     >
       <button
         {...restButtonProps}
         type="button"
-        className={`text-white text-lg bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 font-medium rounded-full text-sm px-7 py-2.5 text-center me-2 mb-2 dark:bg-green-800 dark:hover:bg-green-600 dark:focus:ring-green-800 disabled:bg-gray-800 disabled:hover:bg-gray-800 disabled:text-gray-400 disabled:border-gray-600 ${restButtonProps.className}}`}
+        className={`w-full md:w-auto text-white text-base font-semibold bg-indigo-600 hover:bg-indigo-500 rounded-xl px-8 py-3.5 shadow-md shadow-indigo-500/20 transition-all active:scale-[0.98] disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none dark:disabled:bg-slate-800/50 dark:disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 ${restButtonProps.className || ""}`}
       >
         {children}
       </button>

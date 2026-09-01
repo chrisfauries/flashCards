@@ -19,43 +19,38 @@ import { ACHIEVEMENT_LEVEL, CHALLENGE_LEVEL } from "./data/breakpoints";
 
 const getInitInstrument = (instrument: string) => {
   if (!instrument) return "";
-
   for (const x of Object.values(INSTRUMENT)) {
     if (x.toLowerCase() === instrument.toLowerCase()) return x;
   }
-
   return "";
 };
+
 const getInitLevel = (level: string) => {
   if (!level) return "";
-
   for (const x of Object.values(LEVEL)) {
     if (x.toLowerCase() === level.toLowerCase()) return x;
   }
-
   return "";
 };
+
 const getInitMode = (mode: string) => {
   if (!mode) return MODE.TIME_TRIAL_MODE;
-
   for (const x of Object.values(MODE)) {
     if (x.toLowerCase() === mode.toLowerCase()) return x;
   }
-
   return MODE.TIME_TRIAL_MODE;
 };
+
 const getInitChallengeLevel = (
   challengeLevel: string
 ): CHALLENGE_LEVEL | "" => {
   if (!challengeLevel) return "";
-
   for (const x of Object.values(
     ACHIEVEMENT_LEVEL
   ) as unknown as CHALLENGE_LEVEL) {
     if (x.toLowerCase() === challengeLevel.toLowerCase())
       return x as CHALLENGE_LEVEL;
   }
-
   return "";
 };
 
@@ -87,6 +82,7 @@ function App() {
     resetResults,
     navigationEvent,
   } = useRecognizer();
+  
   const [queryParams, setQueryParams] = useSearchParams({
     instrument: "",
     level: "",
@@ -226,7 +222,7 @@ function App() {
     default:
   }
 
-  return <div className="App">{phaseComponent}</div>;
+  return <div className="App flex flex-col w-full min-h-screen">{phaseComponent}</div>;
 }
 
 export default App;

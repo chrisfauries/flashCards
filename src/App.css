@@ -1,11 +1,8 @@
+
 .App {
-  text-align: center;
-  background-color: #282c34;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  /* Removed the hardcoded dark background and white text.
+     This allows Tailwind's light/dark modes to flow through from the body. */
 }
