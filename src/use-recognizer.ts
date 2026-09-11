@@ -34,6 +34,7 @@ export interface RecognizerUpdate {
 export enum NavigationDirection {
   FORWARD,
   BACK,
+  FLIP
 }
 
 export interface NavigationEvent {
@@ -77,6 +78,7 @@ const MUSICAL_NOTE_GRAMMAR = [
   "because band",
   "back",
   "next",
+  "flip",
   "[unk]",
 ];
 
@@ -168,6 +170,13 @@ const useRecognizer = (): UseRecognizerReturn => {
       if (/back/i.test(result)) {
          debouncedSetNavigationEvent({
           direction: NavigationDirection.BACK,
+          time: Date.now(),
+        });
+        return true;
+      }
+      if (/flip/i.test(result)) {
+        debouncedSetNavigationEvent({
+          direction: NavigationDirection.FLIP,
           time: Date.now(),
         });
         return true;

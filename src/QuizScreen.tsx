@@ -87,6 +87,8 @@ const QuizScreen: React.FC<Props> = ({
           instrumentCards={instrumentCards}
           setPhase={setPhase}
           navigationEvent={navigationEvent}
+          results={results}
+          resetResults={resetResults}
         />
       );
   }

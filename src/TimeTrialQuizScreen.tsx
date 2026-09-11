@@ -8,8 +8,8 @@ import { PHASE } from "./data/phase";
 import arrayShuffle from "array-shuffle";
 import Time from "./Time";
 import Score from "./Score";
-import Note from "./Note";
 import { RecognizerUpdate } from "./use-recognizer";
+import NoteCardGroup from "./NoteCardGroup";
 
 interface Props {
   instrumentCards: INSTRUMENT_CARD[];
@@ -46,12 +46,14 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
 }) => {
   const nextResultToHandle = useRef(0);
   const cardCount = orderedInstrumentCards.length;
+
   const [isPrimed, setIsPrimed] = useState(false);
   const [instrumentCards] = useState(arrayShuffle(orderedInstrumentCards));
   const [instrumentCardIndex, setCurrentCardIndex] = useState(0);
 
   const currentInstumentCard: INSTRUMENT_CARD | undefined =
     instrumentCards[instrumentCardIndex];
+
   const noteCards = currentInstumentCard?.noteCards;
   const noteNames = new Set(noteCards?.map((noteCard) => noteCard.noteName));
 
@@ -89,6 +91,7 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
           const nextNoteCards = instrumentCards[
             waitingForFinalResult.current.i + 1
           ].noteCards.map((noteCard) => noteCard.noteName);
+
           nextNoteCards.forEach((x) => combinedNotesToVerify.add(x));
 
           if (result.result.every((x) => combinedNotesToVerify.has(x))) {
@@ -96,7 +99,9 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
               i: instrumentCardIndex,
               checkedNoteNames: new Set(nextNoteCards),
             };
+
             advance(true, true, nextNoteCards);
+
             return;
           }
         }
@@ -108,8 +113,8 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
 
       if (waitingForFinalResult.current.i === instrumentCardIndex) {
         const notesVerified = waitingForFinalResult.current.checkedNoteNames;
-        let resultContainsWrongAnswsers = false;
 
+        let resultContainsWrongAnswsers = false;
         result.result.forEach((result) => {
           if (notesToVerify.has(result)) {
             notesVerified.add(result);
@@ -120,6 +125,7 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
 
         if (resultContainsWrongAnswsers) {
           const allAnswers = [...result.result];
+
           waitingForFinalResult.current.checkedNoteNames.forEach((nn) =>
             allAnswers.push(nn)
           );
@@ -148,6 +154,7 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
           }
         }
       }
+
       return;
     }
 
@@ -163,6 +170,7 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
             ...result.result,
           ]),
         };
+
         advance(true, false, result.result);
       }
       return;
@@ -228,6 +236,7 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
       nextResultToHandle.current = 0;
       return;
     }
+
     if (results.length - 1 < nextResultToHandle.current) return;
 
     for (let i = nextResultToHandle.current; i < results.length; i++) {
@@ -267,24 +276,10 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
         )}
       </h2>
 
-      {/* Added strict min-h-[550px] md:min-h-[500px] to lock layout from jumping */}
-      <div className="flex flex-col items-center justify-center w-full max-w-4xl bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 p-6 md:p-12 min-h-[550px] md:min-h-[500px] mb-8 relative overflow-hidden transition-colors duration-500">
+      <div className="flex flex-col items-center justify-center w-full max-w-4xl bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 p-4 sm:p-6 md:p-12 min-h-[300px] mb-8 relative overflow-hidden transition-colors duration-500">
         {isCatchPhaseSpoken ? (
-          <div className="flex flex-col md:flex-row flex-wrap items-center justify-center gap-2 w-full">
-            {noteCards.map((noteCard) => (
-              <div 
-                key={
-                  currentInstumentCard.frequency / 10000 +
-                  currentInstumentCard.cardNumber +
-                  noteCard.noteName * 100
-                }
-                className="p-4 md:p-8 flex items-center justify-center"
-              >
-                <div className="scale-[1.15] md:scale-150 rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700 bg-white">
-                  <Note card={noteCard} />
-                </div>
-              </div>
-            ))}
+          <div className="w-full min-w-0">
+            <NoteCardGroup noteCards={noteCards} />
           </div>
         ) : (
           <div className="flex flex-col items-center text-slate-400 dark:text-slate-500 animate-pulse">
@@ -300,6 +295,7 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
         <Time minutes={minutes} seconds={seconds} />
         <Score correct={correctAnswers.length} total={instrumentCardIndex} />
       </div>
+
     </div>
   );
 };
