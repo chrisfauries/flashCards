@@ -237,6 +237,8 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
       return;
     }
 
+    if (!isPrimed) return;
+
     if (results.length - 1 < nextResultToHandle.current) return;
 
     for (let i = nextResultToHandle.current; i < results.length; i++) {
