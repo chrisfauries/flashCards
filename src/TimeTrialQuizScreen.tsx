@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { NOTE_NAME } from "./data/pitch";
 import {
   INSTRUMENT_CARD,
+  TIMED_INSTRUMENT_CARD,
   MISSED_INSTRUMENT_CARD,
 } from "./data/instruments/instrument";
 import { PHASE } from "./data/phase";
@@ -18,8 +19,8 @@ interface Props {
   resetTimer: (offset?: Date, newAutoStart?: boolean) => void;
   minutes: number;
   seconds: number;
-  correctAnswers: INSTRUMENT_CARD[];
-  addCorrectAnswer: React.ActionDispatch<[newValue: INSTRUMENT_CARD | null]>;
+  correctAnswers: TIMED_INSTRUMENT_CARD[];
+  addCorrectAnswer: React.ActionDispatch<[newValue: TIMED_INSTRUMENT_CARD | null]>;
   addMissedAnswer: React.ActionDispatch<
     [newValue: MISSED_INSTRUMENT_CARD | null]
   >;
@@ -46,6 +47,9 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
 }) => {
   const nextResultToHandle = useRef(0);
   const cardCount = orderedInstrumentCards.length;
+  
+  // Track how long each card is visible
+  const cardStartTime = useRef<number>(Date.now());
 
   const [isPrimed, setIsPrimed] = useState(false);
   const [instrumentCards] = useState(arrayShuffle(orderedInstrumentCards));
@@ -182,6 +186,11 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
     isVerified: boolean,
     spokenNoteNames: NOTE_NAME[]
   ) => {
+    if (!currentInstumentCard) return;
+
+    // Calculate how long it took to answer this card
+    const timeTakenMs = Date.now() - cardStartTime.current;
+
     if (!isCorrect) {
       addMissedAnswer({
         ...currentInstumentCard,
@@ -199,6 +208,7 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
           checkedNoteNames: new Set(),
         };
       }
+      cardStartTime.current = Date.now(); // Reset timer for the next card
       advanceInstrumentCard();
     }
 
@@ -208,7 +218,11 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
         waitingForFinalResult.current.checkedNoteNames.has(x)
       )
     ) {
-      addCorrectAnswer(currentInstumentCard);
+      addCorrectAnswer({
+        ...currentInstumentCard,
+        timeToAnswerMs: timeTakenMs
+      });
+      cardStartTime.current = Date.now(); // Reset timer for the next card
       advanceInstrumentCard();
 
       if (isVerified) {
@@ -234,6 +248,7 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
       setIsPrimed(true);
       resetResults();
       nextResultToHandle.current = 0;
+      cardStartTime.current = Date.now(); // Start tracking time the moment the quiz actually begins
       return;
     }
 

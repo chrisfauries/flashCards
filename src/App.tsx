@@ -3,6 +3,7 @@ import "./App.css";
 import {
   INSTRUMENT,
   INSTRUMENT_CARD,
+  TIMED_INSTRUMENT_CARD,
   MISSED_INSTRUMENT_CARD,
 } from "./data/instruments/instrument";
 import { LEVEL } from "./data/instruments/level";
@@ -82,13 +83,14 @@ function App() {
     resetResults,
     navigationEvent,
   } = useRecognizer();
-  
+
   const [queryParams, setQueryParams] = useSearchParams({
     instrument: "",
     level: "",
     mode: MODE.TIME_TRIAL_MODE,
     challengeLevel: "",
   });
+
   const queryParamValues = Object.fromEntries(
     Array.from(queryParams.entries())
   );
@@ -102,6 +104,7 @@ function App() {
   const [mode, setMode] = useState<MODE>(
     getInitMode(queryParamValues.mode ?? "")
   );
+
   const [challengeLevel, setChallengeLevel] = useState<CHALLENGE_LEVEL | "">(
     getInitChallengeLevel(queryParamValues.challengeLevel ?? "")
   );
@@ -111,14 +114,17 @@ function App() {
       ? PHASE.QUIZZING
       : PHASE.SETUP
   );
+
   const { pause, reset, minutes, seconds } = useStopwatch({
     autoStart: false,
   });
+
   const [correctAnswers, addCorrectAnswer] = useReducer(
-    (state: INSTRUMENT_CARD[], newValue: INSTRUMENT_CARD | null) =>
+    (state: TIMED_INSTRUMENT_CARD[], newValue: TIMED_INSTRUMENT_CARD | null) =>
       newValue ? [...state, newValue] : [],
     []
   );
+
   const [missedAnswers, addMissedAnswer] = useReducer(
     (
       state: MISSED_INSTRUMENT_CARD[],
@@ -126,6 +132,7 @@ function App() {
     ) => (newValue ? [...state, newValue] : []),
     []
   );
+
   const [quizCards, setQuizCards] = useReducer(
     (state: INSTRUMENT_CARD[], action: QuizCardAction) => {
       switch (action.type) {

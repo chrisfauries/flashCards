@@ -13,7 +13,7 @@ const ChallengeLevelSelector: React.FC<Props> = ({
   disabled = false,
 }) => {
   const options = Object.values(ACHIEVEMENT_LEVEL)
-    .filter((x) => x !== ACHIEVEMENT_LEVEL.KEEPING_PRACTICING && x !== ACHIEVEMENT_LEVEL.LIGHTNING);
+    .filter((x) => x !== ACHIEVEMENT_LEVEL.KEEPING_PRACTICING);
 
   return (
     <div className={`w-full transition-all duration-500 animate-in fade-in slide-in-from-top-4 ${disabled ? 'opacity-40 grayscale pointer-events-none' : ''}`}>
@@ -39,6 +39,9 @@ const ChallengeLevelSelector: React.FC<Props> = ({
           } else if (level === ACHIEVEMENT_LEVEL.GOLD) {
             baseClass = "border-yellow-500/40 text-yellow-700 bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-300";
             selectedClass = "bg-yellow-400 text-yellow-950 border-yellow-300 shadow-lg shadow-yellow-400/30 scale-105 -translate-y-0.5 z-10";
+          } else if (level === ACHIEVEMENT_LEVEL.LIGHTNING) {
+            baseClass = "border-yellow-500/40 text-blue-700 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300";
+            selectedClass = "bg-blue-400 text-blue-950 border-blue-300 shadow-lg shadow-blue-400/30 scale-105 -translate-y-0.5 z-10";
           }
 
           return (

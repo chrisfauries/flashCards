@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   INSTRUMENT_CARD,
+  TIMED_INSTRUMENT_CARD,
   MISSED_INSTRUMENT_CARD,
 } from "./data/instruments/instrument";
 import { PHASE } from "./data/phase";
@@ -21,7 +22,7 @@ import NoteCardGroup from "./NoteCardGroup";
 interface Props {
   instrumentCards: INSTRUMENT_CARD[];
   setPhase: React.Dispatch<React.SetStateAction<PHASE>>;
-  addCorrectAnswer: React.ActionDispatch<[newValue: INSTRUMENT_CARD | null]>;
+  addCorrectAnswer: React.ActionDispatch<[newValue: TIMED_INSTRUMENT_CARD | null]>;
   addMissedAnswer: React.ActionDispatch<
     [newValue: MISSED_INSTRUMENT_CARD | null]
   >;
@@ -58,8 +59,14 @@ const ChallengeQuizScreen: React.FC<Props> = ({
   const { timeLeft, start, reset } = useCountdown(timePerCard);
 
   const advance = useCallback(() => {
+    if (!currentInstumentCard) return;
+    const timeTakenMs = timePerCard - timeLeft; // Calculate time taken
+
     if (isCorrect) {
-      addCorrectAnswer(currentInstumentCard);
+      addCorrectAnswer({
+        ...currentInstumentCard,
+        timeToAnswerMs: timeTakenMs,
+      });
     } else {
       addMissedAnswer({
         ...currentInstumentCard,
@@ -94,6 +101,8 @@ const ChallengeQuizScreen: React.FC<Props> = ({
     resetResults,
     reset,
     start,
+    timePerCard,
+    timeLeft,
   ]);
 
   useHighPrecisionInterval(advance, timePerCard);

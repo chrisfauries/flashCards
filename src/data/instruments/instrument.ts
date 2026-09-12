@@ -1,5 +1,5 @@
 import { CARD } from "../cards";
-import {  NOTE_NAME } from "../pitch";
+import { NOTE_NAME } from "../pitch";
 import { LEVEL } from "./level";
 
 export enum INSTRUMENT {
@@ -23,6 +23,10 @@ export interface INSTRUMENT_CARD {
   frequency: number;
 }
 
+export interface TIMED_INSTRUMENT_CARD extends INSTRUMENT_CARD {
+  timeToAnswerMs: number;
+}
+
 export interface MISSED_INSTRUMENT_CARD extends INSTRUMENT_CARD {
   givenAnswer: NOTE_NAME[];
 }
@@ -36,4 +40,3 @@ export type INSTRUMENT_CARD_LEVEL_MAP = Partial<Record<
   LEVEL,
   INSTRUMENT_CARD[]
 >>;
-

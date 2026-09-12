@@ -1,6 +1,7 @@
 import React from "react";
 import {
   INSTRUMENT_CARD,
+  TIMED_INSTRUMENT_CARD,
   MISSED_INSTRUMENT_CARD,
 } from "./data/instruments/instrument";
 import { PHASE } from "./data/phase";
@@ -19,8 +20,8 @@ interface Props {
   resetTimer: (offset?: Date, newAutoStart?: boolean) => void;
   minutes: number;
   seconds: number;
-  correctAnswers: INSTRUMENT_CARD[];
-  addCorrectAnswer: React.ActionDispatch<[newValue: INSTRUMENT_CARD | null]>;
+  correctAnswers: TIMED_INSTRUMENT_CARD[];
+  addCorrectAnswer: React.ActionDispatch<[newValue: TIMED_INSTRUMENT_CARD | null]>;
   addMissedAnswer: React.ActionDispatch<
     [newValue: MISSED_INSTRUMENT_CARD | null]
   >;

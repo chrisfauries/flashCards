@@ -2,6 +2,7 @@ import React, { JSX } from "react";
 import {
   INSTRUMENT,
   INSTRUMENT_CARD,
+  TIMED_INSTRUMENT_CARD,
   MISSED_INSTRUMENT_CARD,
 } from "./data/instruments/instrument";
 import MissedCard from "./MissedCard";
@@ -16,12 +17,14 @@ import Score from "./Score";
 import { LEVEL } from "./data/instruments/level";
 import { QUIZ_CARD_ACTION, QuizCardAction } from "./App";
 import { MODE } from "./data/instruments/mode";
+import SpeedBreakdown from "./SpeedBreakdown";
 
 const getAchievementLevel = (
   totalSeconds: number,
   totalCards: number
 ): ACHIEVEMENT_LEVEL => {
   let highestBreakpoint = ACHIEVEMENT_LEVEL.KEEPING_PRACTICING;
+
   for (const [achievementLevel, multiplier] of Object.entries(
     ACHIEVEMENT_LEVEL_MULTIPLIER_MAP
   )) {
@@ -29,6 +32,7 @@ const getAchievementLevel = (
       highestBreakpoint = achievementLevel as ACHIEVEMENT_LEVEL;
     }
   }
+
   return highestBreakpoint;
 };
 
@@ -37,7 +41,7 @@ interface Props {
   level: LEVEL;
   mode: MODE;
   challengeLevel: CHALLENGE_LEVEL | "";
-  correctAnswers: INSTRUMENT_CARD[];
+  correctAnswers: TIMED_INSTRUMENT_CARD[];
   missedAnswers: MISSED_INSTRUMENT_CARD[];
   minutes: number;
   seconds: number;
@@ -59,7 +63,7 @@ const ResultsScreen: React.FC<Props> = ({
 }) => {
   const totalSeconds = seconds + minutes * 60;
   const totalCards = correctAnswers.length + missedAnswers.length;
-  
+
   const calculatedAchievement = getAchievementLevel(
     totalSeconds,
     correctAnswers.length
@@ -106,7 +110,6 @@ const ResultsScreen: React.FC<Props> = ({
           </div>
         );
         break;
-
       case ACHIEVEMENT_LEVEL.GOLD:
         themeClass = "bg-gradient-to-br from-yellow-300 to-amber-500 shadow-[0_10px_50px_rgba(251,191,36,0.5)] border-yellow-200 text-amber-950";
         achievementColor = "text-white font-black drop-shadow-md";
@@ -123,7 +126,6 @@ const ResultsScreen: React.FC<Props> = ({
           </div>
         );
         break;
-
       case ACHIEVEMENT_LEVEL.SILVER:
         themeClass = "bg-gradient-to-br from-slate-300 to-slate-500 shadow-[0_10px_50px_rgba(148,163,184,0.5)] border-slate-200 text-slate-900";
         achievementColor = "text-white font-black drop-shadow-md";
@@ -133,7 +135,6 @@ const ResultsScreen: React.FC<Props> = ({
           </svg>
         );
         break;
-
       case ACHIEVEMENT_LEVEL.BRONZE:
         themeClass = "bg-gradient-to-br from-orange-400 to-orange-700 shadow-[0_10px_50px_rgba(234,88,12,0.4)] border-orange-300 text-white";
         achievementColor = "text-orange-100 font-black drop-shadow-md";
@@ -143,7 +144,6 @@ const ResultsScreen: React.FC<Props> = ({
           </svg>
         );
         break;
-
       case ACHIEVEMENT_LEVEL.KEEPING_PRACTICING:
       default:
         themeClass = "bg-gradient-to-br from-emerald-400 to-teal-600 shadow-[0_10px_50px_rgba(16,185,129,0.4)] border-emerald-300 text-white";
@@ -158,7 +158,6 @@ const ResultsScreen: React.FC<Props> = ({
   }
 
   let allCorrectSubTitle: JSX.Element = <></>;
-
   if (allCorrect) {
     if (mode === MODE.TIME_TRIAL_MODE) {
       allCorrectSubTitle = (
@@ -190,7 +189,6 @@ const ResultsScreen: React.FC<Props> = ({
           animation-timing-function: linear;
           animation-iteration-count: infinite;
         }
-
         /* Safe Electric Glow (Replaces hazardous strobing flashes) */
         @keyframes electricGlow {
           0%, 100% { opacity: 0.5; filter: drop-shadow(0 0 30px rgba(34,211,238,0.5)) scale(1); }
@@ -217,12 +215,19 @@ const ResultsScreen: React.FC<Props> = ({
 
       {/* Primary Result Banner / Hero Card */}
       {allCorrect ? (
-        <div className={`flex flex-col items-center justify-center w-full max-w-4xl rounded-[3rem] p-10 md:p-16 mb-12 border relative overflow-hidden transition-all duration-500 z-10 ${themeClass}`}>
-          {icon}
-          <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-2 text-center drop-shadow-sm">
-            Results!
-          </h1>
-          {allCorrectSubTitle}
+        <div className="flex flex-col items-center w-full z-10">
+          <div className={`flex flex-col items-center justify-center w-full max-w-4xl rounded-[3rem] p-10 md:p-16 mb-12 border relative overflow-hidden transition-all duration-500 z-10 ${themeClass}`}>
+            {icon}
+            <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-2 text-center drop-shadow-sm">
+              Results!
+            </h1>
+            {allCorrectSubTitle}
+          </div>
+
+          {/* New Stats Component for Time Trial mode */}
+          {mode === MODE.TIME_TRIAL_MODE && correctAnswers.length > 0 && (
+            <SpeedBreakdown correctAnswers={correctAnswers} />
+          )}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center w-full max-w-4xl rounded-[3rem] p-10 md:p-14 mb-12 border bg-white dark:bg-slate-900 shadow-[0_8px_30px_rgb(0,0,0,0.06)] dark:shadow-none border-slate-200 dark:border-slate-800 relative overflow-hidden transition-all duration-500 z-10">
