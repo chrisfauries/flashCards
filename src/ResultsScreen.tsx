@@ -16,7 +16,8 @@ import Time from "./Time";
 import Score from "./Score";
 import { LEVEL } from "./data/instruments/level";
 import { QUIZ_CARD_ACTION, QuizCardAction } from "./App";
-import { MODE } from "./data/instruments/mode";
+import { MODE, isTapMode } from "./data/instruments/mode";
+import { CARD_DISPLAY } from "./data/display";
 import SpeedBreakdown from "./SpeedBreakdown";
 
 const getAchievementLevel = (
@@ -40,6 +41,7 @@ interface Props {
   instrument: INSTRUMENT;
   level: LEVEL;
   mode: MODE;
+  display: CARD_DISPLAY;
   challengeLevel: CHALLENGE_LEVEL | "";
   correctAnswers: TIMED_INSTRUMENT_CARD[];
   missedAnswers: MISSED_INSTRUMENT_CARD[];
@@ -53,6 +55,7 @@ const ResultsScreen: React.FC<Props> = ({
   instrument,
   level,
   mode,
+  display,
   challengeLevel,
   correctAnswers,
   missedAnswers,
@@ -75,6 +78,10 @@ const ResultsScreen: React.FC<Props> = ({
       : calculatedAchievement;
 
   const allCorrect = missedAnswers.length === 0;
+
+  // Tap modes are reviewed on the marimba so the tapped bar can be shown
+  const resultDisplay = isTapMode(mode) ? CARD_DISPLAY.MARIMBA : display;
+  const isTimedMode = mode === MODE.TIME_TRIAL_MODE || isTapMode(mode);
 
   // Visual Theme Setup based on Achievement
   let themeClass = "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-slate-900 dark:text-white";
@@ -159,7 +166,7 @@ const ResultsScreen: React.FC<Props> = ({
 
   let allCorrectSubTitle: JSX.Element = <></>;
   if (allCorrect) {
-    if (mode === MODE.TIME_TRIAL_MODE) {
+    if (isTimedMode) {
       allCorrectSubTitle = (
         <p className="text-xl md:text-2xl font-medium mt-4 tracking-wide text-center">
           For {instrument} Level {level}, you are a <span className={achievementColor}>{activeAchievement}</span> level note reader!
@@ -225,8 +232,8 @@ const ResultsScreen: React.FC<Props> = ({
           </div>
 
           {/* New Stats Component for Time Trial mode */}
-          {mode === MODE.TIME_TRIAL_MODE && correctAnswers.length > 0 && (
-            <SpeedBreakdown correctAnswers={correctAnswers} />
+          {isTimedMode && correctAnswers.length > 0 && (
+            <SpeedBreakdown correctAnswers={correctAnswers} display={resultDisplay} />
           )}
         </div>
       ) : (
@@ -257,7 +264,7 @@ const ResultsScreen: React.FC<Props> = ({
           
           <div className="flex flex-row justify-center flex-wrap w-full gap-6 md:gap-8 mb-12">
             {missedAnswers.map((missedCard) => (
-              <MissedCard key={missedCard.cardNumber} missedCard={missedCard} />
+              <MissedCard key={missedCard.cardNumber} missedCard={missedCard} display={resultDisplay} />
             ))}
           </div>
         </div>

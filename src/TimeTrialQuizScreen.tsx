@@ -10,10 +10,12 @@ import arrayShuffle from "array-shuffle";
 import Time from "./Time";
 import Score from "./Score";
 import { RecognizerUpdate } from "./use-recognizer";
-import NoteCardGroup from "./NoteCardGroup";
+import CardPrompt from "./CardPrompt";
+import { CARD_DISPLAY } from "./data/display";
 
 interface Props {
   instrumentCards: INSTRUMENT_CARD[];
+  display: CARD_DISPLAY;
   setPhase: React.Dispatch<React.SetStateAction<PHASE>>;
   pauseTimer: () => void;
   resetTimer: (offset?: Date, newAutoStart?: boolean) => void;
@@ -32,6 +34,7 @@ interface Props {
 
 const TimeTrialQuizScreen: React.FC<Props> = ({
   instrumentCards: orderedInstrumentCards,
+  display,
   setPhase,
   pauseTimer,
   resetTimer,
@@ -296,7 +299,7 @@ const TimeTrialQuizScreen: React.FC<Props> = ({
       <div className="flex flex-col items-center justify-center w-full max-w-4xl bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 p-4 sm:p-6 md:p-12 min-h-[300px] mb-8 relative overflow-hidden transition-colors duration-500">
         {isCatchPhaseSpoken ? (
           <div className="w-full min-w-0">
-            <NoteCardGroup noteCards={noteCards} />
+            <CardPrompt noteCards={noteCards} display={display} />
           </div>
         ) : (
           <div className="flex flex-col items-center text-slate-400 dark:text-slate-500 animate-pulse">

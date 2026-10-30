@@ -10,10 +10,12 @@ import { getLevelCount } from "./data/instruments/cardAccessor";
 import { VoskModelStatus } from "./use-vosk-model";
 import { AudioStatus } from "./use-recognizer";
 import LoadingStatus from "./LoadingStatus";
-import { MODE } from "./data/instruments/mode";
+import { MODE, isTapMode } from "./data/instruments/mode";
 import ModeSelector from "./ModeSelector";
 import { CHALLENGE_LEVEL } from "./data/breakpoints";
 import ChallengeLevelSelector from "./ChallengeLevelSelector";
+import DisplaySelector from "./DisplaySelector";
+import { CARD_DISPLAY } from "./data/display";
 
 interface Props {
   instrument: INSTRUMENT | "";
@@ -29,6 +31,8 @@ interface Props {
   setMode: React.Dispatch<React.SetStateAction<MODE>>;
   challengeLevel: CHALLENGE_LEVEL | "";
   setChallengeLevel: React.Dispatch<React.SetStateAction<CHALLENGE_LEVEL | "">>;
+  display: CARD_DISPLAY;
+  setDisplay: React.Dispatch<React.SetStateAction<CARD_DISPLAY>>;
 }
 
 const SetupScreen: React.FC<Props> = ({
@@ -44,11 +48,16 @@ const SetupScreen: React.FC<Props> = ({
   mode,
   setMode,
   challengeLevel,
-  setChallengeLevel
+  setChallengeLevel,
+  display,
+  setDisplay
 }) => {
   const isVoiceReady = 
     modelStatus === VoskModelStatus.READY && 
     audioStatus === AudioStatus.CONNECTED;
+
+  // Tap modes are answered on screen, so they don't wait on the voice model
+  const isReadyToStart = isTapMode(mode) || isVoiceReady;
 
   const areOptionsSelected = 
     !!instrument && 
@@ -143,6 +152,7 @@ const SetupScreen: React.FC<Props> = ({
           mode={mode}
           setMode={setMode}
           setChallengeLevel={setChallengeLevel}
+          instrument={instrument}
           disabled={!instrument || !level}
         />
         
@@ -153,12 +163,20 @@ const SetupScreen: React.FC<Props> = ({
             disabled={!instrument || !level}
           />
         )}
+
+        {instrument === INSTRUMENT.PERCUSSION && !isTapMode(mode) && (
+          <DisplaySelector
+            display={display}
+            setDisplay={setDisplay}
+            disabled={!instrument || !level}
+          />
+        )}
       </div>
 
       <div className="relative flex items-center justify-center w-full max-w-lg min-h-[300px] z-10">
         <div 
           className={`absolute w-full transition-all duration-[1500ms] ease-in-out ${
-            !isVoiceReady ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none"
+            !isReadyToStart ? "opacity-100 scale-100" : "opacity-0 scale-90 pointer-events-none"
           }`}
         >
           <LoadingStatus
@@ -171,7 +189,7 @@ const SetupScreen: React.FC<Props> = ({
 
         <div 
           className={`absolute transition-all duration-[1500ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
-            isVoiceReady ? "opacity-100 scale-100" : "opacity-0 scale-50 pointer-events-none"
+            isReadyToStart ? "opacity-100 scale-100" : "opacity-0 scale-50 pointer-events-none"
           }`}
         >
           <button

@@ -15,7 +15,8 @@ import ResultsScreen from "./ResultsScreen";
 import { useStopwatch } from "react-timer-hook";
 import { useSearchParams } from "react-router-dom";
 import useRecognizer from "./use-recognizer";
-import { MODE } from "./data/instruments/mode";
+import { MODE, isTapMode } from "./data/instruments/mode";
+import { CARD_DISPLAY } from "./data/display";
 import { ACHIEVEMENT_LEVEL, CHALLENGE_LEVEL } from "./data/breakpoints";
 
 const getInitInstrument = (instrument: string) => {
@@ -40,6 +41,14 @@ const getInitMode = (mode: string) => {
     if (x.toLowerCase() === mode.toLowerCase()) return x;
   }
   return MODE.TIME_TRIAL_MODE;
+};
+
+const getInitDisplay = (display: string) => {
+  if (!display) return CARD_DISPLAY.STAFF;
+  for (const x of Object.values(CARD_DISPLAY)) {
+    if (x.toLowerCase() === display.toLowerCase()) return x;
+  }
+  return CARD_DISPLAY.STAFF;
 };
 
 const getInitChallengeLevel = (
@@ -89,6 +98,7 @@ function App() {
     level: "",
     mode: MODE.TIME_TRIAL_MODE,
     challengeLevel: "",
+    display: CARD_DISPLAY.STAFF,
   });
 
   const queryParamValues = Object.fromEntries(
@@ -108,6 +118,14 @@ function App() {
   const [challengeLevel, setChallengeLevel] = useState<CHALLENGE_LEVEL | "">(
     getInitChallengeLevel(queryParamValues.challengeLevel ?? "")
   );
+
+  const [display, setDisplay] = useState<CARD_DISPLAY>(
+    getInitDisplay(queryParamValues.display ?? "")
+  );
+
+  // Marimba display and tap modes are percussion only
+  const isPercussion = instrument === INSTRUMENT.PERCUSSION;
+  const activeDisplay = isPercussion ? display : CARD_DISPLAY.STAFF;
 
   const [phase, setPhase] = useState<PHASE>(
     instrument && level && queryParamValues.autostart
@@ -143,10 +161,14 @@ function App() {
           return [];
         }
         case QUIZ_CARD_ACTION.SET_FOR_PRACTICE_MODE:
-          return action.missedAnswers;
+          // drop the previous answer so it can't leak into the next round's results
+          return action.missedAnswers.map(
+            ({ givenAnswer, givenPitch, ...instrumentCard }) => instrumentCard
+          );
       }
     },
-    []
+    // seeded up front so an autostarted quiz has cards on its first render
+    instrument && level ? getCardsForQuiz(instrument, level) : []
   );
 
   let phaseComponent: JSX.Element = <></>;
@@ -157,8 +179,15 @@ function App() {
       level,
       mode,
       challengeLevel,
+      display,
     });
-  }, [setQueryParams, instrument, level, mode, challengeLevel]);
+  }, [setQueryParams, instrument, level, mode, challengeLevel, display]);
+
+  useEffect(() => {
+    if (instrument && !isPercussion && isTapMode(mode)) {
+      setMode(MODE.TIME_TRIAL_MODE);
+    }
+  }, [instrument, isPercussion, mode]);
 
   useEffect(() => {
     setQuizCards({
@@ -185,6 +214,8 @@ function App() {
           setMode={setMode}
           challengeLevel={challengeLevel}
           setChallengeLevel={setChallengeLevel}
+          display={display}
+          setDisplay={setDisplay}
         />
       );
       break;
@@ -192,6 +223,7 @@ function App() {
       phaseComponent = (
         <QuizScreen
           mode={mode}
+          display={activeDisplay}
           instrumentCards={quizCards}
           setPhase={setPhase}
           pauseTimer={pause}
@@ -216,6 +248,7 @@ function App() {
           instrument={instrument as INSTRUMENT}
           level={level as LEVEL}
           mode={mode}
+          display={activeDisplay}
           challengeLevel={challengeLevel}
           seconds={seconds}
           minutes={minutes}

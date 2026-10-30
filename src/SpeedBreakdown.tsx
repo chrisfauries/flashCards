@@ -2,12 +2,15 @@ import React, { useState } from "react";
 import { TIMED_INSTRUMENT_CARD } from "./data/instruments/instrument";
 import { NOTE_NAME_STRING_MAP } from "./data/pitch";
 import Note from "./Note";
+import MarimbaKeyboard, { MARKER_STYLE } from "./MarimbaKeyboard";
+import { CARD_DISPLAY } from "./data/display";
 
 interface Props {
   correctAnswers: TIMED_INSTRUMENT_CARD[];
+  display: CARD_DISPLAY;
 }
 
-const SpeedBreakdown: React.FC<Props> = ({ correctAnswers }) => {
+const SpeedBreakdown: React.FC<Props> = ({ correctAnswers, display }) => {
   const [selectedCard, setSelectedCard] = useState<TIMED_INSTRUMENT_CARD | null>(null);
 
   const sortedCorrectAnswers = [...correctAnswers].sort(
@@ -96,14 +99,22 @@ const SpeedBreakdown: React.FC<Props> = ({ correctAnswers }) => {
 
             {/* Note Canvas Rendering */}
             <div className="mt-10 mb-8 flex flex-row flex-wrap justify-center gap-3 w-full px-2 min-w-0">
-              {selectedCard.noteCards.map((noteCard, idx) => (
-                <div
-                  key={idx}
-                  className="flex flex-col items-center justify-center w-full max-w-[140px] sm:max-w-[180px] bg-white rounded-xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-700"
-                >
-                  <Note card={noteCard} />
+              {display === CARD_DISPLAY.MARIMBA ? (
+                <div className="w-full bg-white rounded-xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-700">
+                  <MarimbaKeyboard
+                    markers={[{ pitch: selectedCard.noteCards[0].pitch, style: MARKER_STYLE.HIGHLIGHT }]}
+                  />
                 </div>
-              ))}
+              ) : (
+                selectedCard.noteCards.map((noteCard, idx) => (
+                  <div
+                    key={idx}
+                    className="flex flex-col items-center justify-center w-full max-w-[140px] sm:max-w-[180px] bg-white rounded-xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-700"
+                  >
+                    <Note card={noteCard} />
+                  </div>
+                ))
+              )}
             </div>
 
             {/* Time and Note Details */}

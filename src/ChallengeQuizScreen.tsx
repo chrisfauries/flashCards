@@ -17,10 +17,12 @@ import {
 } from "./data/breakpoints";
 import CountdownDisplay from "./CountdownDisplay";
 import useCountdown from "./use-countdown";
-import NoteCardGroup from "./NoteCardGroup";
+import CardPrompt from "./CardPrompt";
+import { CARD_DISPLAY } from "./data/display";
 
 interface Props {
   instrumentCards: INSTRUMENT_CARD[];
+  display: CARD_DISPLAY;
   setPhase: React.Dispatch<React.SetStateAction<PHASE>>;
   addCorrectAnswer: React.ActionDispatch<[newValue: TIMED_INSTRUMENT_CARD | null]>;
   addMissedAnswer: React.ActionDispatch<
@@ -33,6 +35,7 @@ interface Props {
 
 const ChallengeQuizScreen: React.FC<Props> = ({
   instrumentCards: orderedInstrumentCards,
+  display,
   setPhase,
   addCorrectAnswer,
   addMissedAnswer,
@@ -181,7 +184,7 @@ const ChallengeQuizScreen: React.FC<Props> = ({
         `}
       >
         <div className="w-full z-10 min-w-0">
-          <NoteCardGroup noteCards={noteCards} />
+          <CardPrompt noteCards={noteCards} display={display} />
         </div>
         
         {isCorrect && <CheckMark />}

@@ -7,13 +7,16 @@ import {
 import { PHASE } from "./data/phase";
 import { NavigationEvent, RecognizerUpdate } from "./use-recognizer";
 import { MODE } from "./data/instruments/mode";
+import { CARD_DISPLAY } from "./data/display";
 import TimeTrialQuizScreen from "./TimeTrialQuizScreen";
 import ManualQuizScreen from "./ManualQuizScreen";
 import ChallengeQuizScreen from "./ChallengeQuizScreen";
+import TapQuizScreen from "./TapQuizScreen";
 import { CHALLENGE_LEVEL } from "./data/breakpoints";
 
 interface Props {
   mode: MODE;
+  display: CARD_DISPLAY;
   instrumentCards: INSTRUMENT_CARD[];
   setPhase: React.Dispatch<React.SetStateAction<PHASE>>;
   pauseTimer: () => void;
@@ -35,6 +38,7 @@ interface Props {
 
 const QuizScreen: React.FC<Props> = ({
   mode,
+  display,
   instrumentCards,
   setPhase,
   pauseTimer,
@@ -56,6 +60,7 @@ const QuizScreen: React.FC<Props> = ({
       return (
         <TimeTrialQuizScreen
           instrumentCards={instrumentCards}
+          display={display}
           setPhase={setPhase}
           pauseTimer={pauseTimer}
           resetTimer={resetTimer}
@@ -74,6 +79,7 @@ const QuizScreen: React.FC<Props> = ({
       return (
         <ChallengeQuizScreen
           instrumentCards={instrumentCards}
+          display={display}
           setPhase={setPhase}
           results={results}
           resetResults={resetResults}
@@ -86,10 +92,27 @@ const QuizScreen: React.FC<Props> = ({
       return (
         <ManualQuizScreen
           instrumentCards={instrumentCards}
+          display={display}
           setPhase={setPhase}
           navigationEvent={navigationEvent}
           results={results}
           resetResults={resetResults}
+        />
+      );
+    case MODE.NOTE_TAP_MODE:
+    case MODE.STAFF_TAP_MODE:
+      return (
+        <TapQuizScreen
+          mode={mode}
+          instrumentCards={instrumentCards}
+          setPhase={setPhase}
+          pauseTimer={pauseTimer}
+          resetTimer={resetTimer}
+          minutes={minutes}
+          seconds={seconds}
+          correctAnswers={correctAnswers}
+          addCorrectAnswer={addCorrectAnswer}
+          addMissedAnswer={addMissedAnswer}
         />
       );
   }

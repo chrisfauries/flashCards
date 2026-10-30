@@ -6,7 +6,8 @@ import { NavigationDirection, NavigationEvent, RecognizerUpdate } from "./use-re
 import Button from "./Button";
 import useIsMobile from "./use-is-mobile";
 import { NOTE_NAME_STRING_MAP } from "./data/pitch";
-import NoteCardGroup from "./NoteCardGroup";
+import CardPrompt from "./CardPrompt";
+import { CARD_DISPLAY } from "./data/display";
 
 const flipMessage = (isMobile: boolean) => {
   return isMobile
@@ -28,6 +29,7 @@ const backMessage = (isMobile: boolean) => {
 
 interface Props {
   instrumentCards: INSTRUMENT_CARD[];
+  display: CARD_DISPLAY;
   setPhase: React.Dispatch<React.SetStateAction<PHASE>>;
   navigationEvent: NavigationEvent | null;
   results: RecognizerUpdate[];
@@ -36,6 +38,7 @@ interface Props {
 
 const ManualQuizScreen: React.FC<Props> = ({
   instrumentCards: orderedInstrumentCards,
+  display,
   setPhase,
   navigationEvent,
   results,
@@ -297,7 +300,7 @@ const ManualQuizScreen: React.FC<Props> = ({
               className={`col-start-1 row-start-1 flex flex-col items-center justify-center w-full h-full rounded-[2rem] transition-colors duration-300 border p-4 sm:p-6 md:p-12 min-h-[300px] ${frontFaceClass}`}
               style={{ backfaceVisibility: "hidden" }}
             >
-              <NoteCardGroup noteCards={noteCards} />
+              <CardPrompt noteCards={noteCards} display={display} />
             </div>
 
             {/* Back of card (Answers) */}

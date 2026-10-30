@@ -1,11 +1,13 @@
 import React from "react";
-import { MODE } from "./data/instruments/mode";
+import { MODE, isTapMode } from "./data/instruments/mode";
+import { INSTRUMENT } from "./data/instruments/instrument";
 import { CHALLENGE_LEVEL } from "./data/breakpoints";
 
 interface Props {
   mode: MODE;
   setMode: React.Dispatch<React.SetStateAction<MODE>>;
   setChallengeLevel: React.Dispatch<React.SetStateAction<CHALLENGE_LEVEL | "">>;
+  instrument: INSTRUMENT | "";
   disabled?: boolean;
 }
 
@@ -31,6 +33,20 @@ const getModeIcon = (mode: MODE) => {
       </svg>
     );
   }
+  if (mode === MODE.NOTE_TAP_MODE) {
+    return (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25V4.5m5.834.166l-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243l-1.59-1.59" />
+      </svg>
+    );
+  }
+  if (mode === MODE.STAFF_TAP_MODE) {
+    return (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
+      </svg>
+    );
+  }
   return null;
 };
 
@@ -39,8 +55,12 @@ const ModeSelector: React.FC<Props> = ({
   setMode,
   disabled = false,
   setChallengeLevel,
+  instrument,
 }) => {
-  const options = Object.values(MODE);
+  // Tap modes use the marimba layout, so they are percussion only
+  const options = Object.values(MODE).filter(
+    (m) => !isTapMode(m) || instrument === INSTRUMENT.PERCUSSION
+  );
 
   return (
     <div className={`w-full transition-all duration-500 ${disabled ? 'opacity-40 grayscale pointer-events-none' : ''}`}>

@@ -1,5 +1,5 @@
 import { CARD } from "../cards";
-import { NOTE_NAME } from "../pitch";
+import { NOTE_NAME, PITCH } from "../pitch";
 import { LEVEL } from "./level";
 
 export enum INSTRUMENT {
@@ -29,6 +29,8 @@ export interface TIMED_INSTRUMENT_CARD extends INSTRUMENT_CARD {
 
 export interface MISSED_INSTRUMENT_CARD extends INSTRUMENT_CARD {
   givenAnswer: NOTE_NAME[];
+  // only set in tap modes, so results can show which bar was tapped
+  givenPitch?: PITCH;
 }
 
 export type INSTRUMENT_CARD_NUMBER_MAP = Record<
