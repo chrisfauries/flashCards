@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { NOTE_NAME_STRING_MAP, PITCH } from "./data/pitch";
+import { PITCH } from "./data/pitch";
 import {
   INSTRUMENT_CARD,
   TIMED_INSTRUMENT_CARD,
@@ -15,7 +15,7 @@ import MarimbaKeyboard, {
   MARIMBA_MARKER,
   MARKER_STYLE,
 } from "./MarimbaKeyboard";
-import { getNoteNamesForPitch, isSamePitchClass } from "./data/marimba";
+import { getNoteNamesForPitch, getPitchLabel } from "./data/marimba";
 
 const CORRECT_FEEDBACK_MS = 250;
 const INCORRECT_FEEDBACK_MS = 900;
@@ -93,8 +93,8 @@ const TapQuizScreen: React.FC<Props> = ({
     const timeTakenMs = Date.now() - cardStartTime.current;
     const correctPitch = noteCards[0].pitch;
 
-    // Octave doesn't matter, any bar with the right note name counts
-    const isCorrect = isSamePitchClass(tappedPitch, correctPitch);
+    // Octave matters, only the exact bar counts
+    const isCorrect = tappedPitch === correctPitch;
 
     if (isCorrect) {
       addCorrectAnswer({
@@ -160,9 +160,7 @@ const TapQuizScreen: React.FC<Props> = ({
         {isStarted ? (
           isNoteTapMode ? (
             <span className="text-6xl md:text-8xl font-black text-indigo-600 dark:text-indigo-400 drop-shadow-sm">
-              {noteCards
-                .map((noteCard) => NOTE_NAME_STRING_MAP[noteCard.noteName])
-                .join(" / ")}
+              {getPitchLabel(noteCards[0].pitch)}
             </span>
           ) : (
             <div className="w-full min-w-0">

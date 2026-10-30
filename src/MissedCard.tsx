@@ -4,6 +4,7 @@ import { NOTE_NAME_STRING_MAP } from "./data/pitch";
 import Note from "./Note";
 import MarimbaKeyboard, { MARIMBA_MARKER, MARKER_STYLE } from "./MarimbaKeyboard";
 import { CARD_DISPLAY } from "./data/display";
+import { getPitchLabel } from "./data/marimba";
 
 interface Props {
   missedCard: MISSED_INSTRUMENT_CARD;
@@ -23,6 +24,11 @@ const MissedCard: React.FC<Props> = ({ missedCard, display }) => {
 
   const isTapped = missedCard.givenPitch !== undefined;
   const correctPitch = missedCard.noteCards[0].pitch;
+
+  // Octave matters when tapping, so include it in both labels
+  const givenLabel =
+    missedCard.givenPitch !== undefined ? getPitchLabel(missedCard.givenPitch) : givenNotes;
+  const correctLabel = isTapped ? getPitchLabel(correctPitch) : correctNotes;
 
   // Tapped answers show the right bar in green and the tapped bar in red
   const markers: MARIMBA_MARKER[] =
@@ -65,7 +71,7 @@ const MissedCard: React.FC<Props> = ({ missedCard, display }) => {
             {isTapped ? "You Tapped" : "You Said"}
           </span>
           <span className="text-xl font-black text-rose-500 drop-shadow-sm leading-tight">
-            {givenNotes}
+            {givenLabel}
           </span>
         </div>
 
@@ -75,7 +81,7 @@ const MissedCard: React.FC<Props> = ({ missedCard, display }) => {
             Correct
           </span>
           <span className="text-xl font-black text-emerald-500 drop-shadow-sm leading-tight">
-            {correctNotes}
+            {correctLabel}
           </span>
         </div>
 

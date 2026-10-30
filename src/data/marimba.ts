@@ -1,4 +1,11 @@
-import { NOTE_NAME, PITCH, PITCH_TO_NOTE_NAMES_MAP } from "./pitch";
+import {
+  ACCIDENTAL,
+  NOTE_NAME,
+  NOTE_NAME_STRING_MAP,
+  PITCH,
+  PITCH_TO_NOTE_NAMES_MAP,
+  PITCH_TO_OCTAVE_MAP,
+} from "./pitch";
 
 // Two octave marimba layout, C4 through C6
 export const MARIMBA_LOWEST_PITCH = PITCH.C_NATURAL_4;
@@ -93,5 +100,10 @@ export const getBarForPitch = (pitch: PITCH): MARIMBA_BAR | undefined =>
 export const getNoteNamesForPitch = (pitch: PITCH): NOTE_NAME[] =>
   Object.values(PITCH_TO_NOTE_NAMES_MAP[pitch]) as NOTE_NAME[];
 
-export const isSamePitchClass = (a: PITCH, b: PITCH) =>
-  (((a - b) % 12) + 12) % 12 === 0;
+// e.g. "B4" or "C♯/D♭5" (OCTAVE is zero based, so FOURTH + 1 = 4)
+export const getPitchLabel = (pitch: PITCH) =>
+  [ACCIDENTAL.SHARP, ACCIDENTAL.NATURAL, ACCIDENTAL.FLAT]
+    .map((accidental) => PITCH_TO_NOTE_NAMES_MAP[pitch][accidental])
+    .filter((noteName): noteName is NOTE_NAME => noteName !== undefined)
+    .map((noteName) => NOTE_NAME_STRING_MAP[noteName])
+    .join("/") + (PITCH_TO_OCTAVE_MAP[pitch] + 1);
