@@ -10,7 +10,7 @@ import { MODE } from "./data/instruments/mode";
 import arrayShuffle from "array-shuffle";
 import Time from "./Time";
 import Score from "./Score";
-import NoteCardGroup from "./NoteCardGroup";
+import Note from "./Note";
 import MarimbaKeyboard, {
   MARIMBA_MARKER,
   MARKER_STYLE,
@@ -146,39 +146,61 @@ const TapQuizScreen: React.FC<Props> = ({
     );
   }
 
+  const time = <Time minutes={minutes} seconds={seconds} />;
+  const score = <Score correct={correctAnswers.length} total={instrumentCardIndex} />;
+
+  // Sized to exactly one screen so the prompt and marimba are visible together without scrolling
   return (
-    <div className="flex flex-col items-center w-full max-w-5xl mx-auto px-4 py-8 md:py-12 animate-in fade-in duration-500">
+    <div className="flex flex-col w-full h-[100dvh] px-2 sm:px-4 py-2 sm:py-3 gap-2 sm:gap-3 overflow-hidden animate-in fade-in duration-500">
 
-      <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white text-center mb-8">
-        {currentInstumentCard.instrument}
-        {isStarted && (
-          <span className="text-indigo-500 ml-2">#{currentInstumentCard.cardNumber}</span>
-        )}
-      </h2>
+      <div className="flex items-stretch justify-center gap-3 md:gap-4 shrink-0 h-[30dvh] min-h-[120px]">
+        {/* On wider screens the time and score flank the prompt to save vertical space */}
+        <div className="hidden md:flex items-center">{time}</div>
 
-      <div className="flex flex-col items-center justify-center w-full max-w-4xl bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 p-4 sm:p-6 md:p-8 min-h-[200px] mb-6 relative overflow-hidden transition-colors duration-500">
-        {isStarted ? (
-          isNoteTapMode ? (
-            <span className="text-6xl md:text-8xl font-black text-indigo-600 dark:text-indigo-400 drop-shadow-sm">
-              {getPitchLabel(noteCards[0].pitch)}
-            </span>
-          ) : (
-            <div className="w-full min-w-0">
-              <NoteCardGroup noteCards={noteCards} />
+        <div className="flex flex-1 max-w-3xl items-center justify-center bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 p-3 relative overflow-hidden transition-colors duration-500 min-w-0">
+          {isStarted && (
+            <div className="absolute top-3 left-3 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest z-10">
+              #{currentInstumentCard.cardNumber}
             </div>
-          )
-        ) : (
-          <button
-            onClick={start}
-            className="flex items-center justify-center px-8 py-4 rounded-full text-sm md:text-base font-bold transition-all duration-300 ease-out active:scale-95 outline-none bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 hover:scale-105 focus-visible:ring-4 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
-          >
-            Tap to start
-          </button>
-        )}
+          )}
+
+          {isStarted ? (
+            isNoteTapMode ? (
+              <span className="text-5xl md:text-7xl font-black text-indigo-600 dark:text-indigo-400 drop-shadow-sm">
+                {getPitchLabel(noteCards[0].pitch)}
+              </span>
+            ) : (
+              // Staves are sized by the row height, not the width, so they never push the marimba down
+              <div className="flex h-full items-center justify-center gap-3 min-w-0">
+                {noteCards.map((noteCard, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center h-full aspect-[44/30] min-w-0 rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700 bg-white"
+                  >
+                    <Note card={noteCard} />
+                  </div>
+                ))}
+              </div>
+            )
+          ) : (
+            <button
+              onClick={start}
+              className="flex items-center justify-center px-8 py-4 rounded-full text-sm md:text-base font-bold transition-all duration-300 ease-out active:scale-95 outline-none bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 hover:scale-105 focus-visible:ring-4 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900"
+            >
+              Tap to start
+            </button>
+          )}
+        </div>
+        <div className="hidden md:flex items-center">{score}</div>
+      </div>
+
+      <div className="flex md:hidden justify-center gap-2 shrink-0">
+        {time}
+        {score}
       </div>
 
       <div
-        className={`w-full max-w-4xl rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700 bg-white mb-8 transition-opacity duration-300 ${
+        className={`flex-1 min-h-0 w-full transition-opacity duration-300 ${
           isStarted ? "opacity-100" : "opacity-40"
         }`}
       >
@@ -186,12 +208,8 @@ const TapQuizScreen: React.FC<Props> = ({
           markers={feedbackMarkers}
           onBarTap={handleBarTap}
           disabled={!isStarted || isLocked}
+          fillContainer
         />
-      </div>
-
-      <div className="flex flex-wrap w-full justify-center gap-4">
-        <Time minutes={minutes} seconds={seconds} />
-        <Score correct={correctAnswers.length} total={instrumentCardIndex} />
       </div>
 
     </div>
